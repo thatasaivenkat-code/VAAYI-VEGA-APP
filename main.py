@@ -1,98 +1,59 @@
 import streamlit as st
-import pandas as pd
 import fitz  # PyMuPDF
+import pandas as pd
 import pdfplumber
+import re
 import barcode
 from barcode.writer import ImageWriter
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import inch
+from datetime import datetime
 from io import BytesIO
 import tempfile
 import os
 
-# Page Config
-st.set_page_config(page_title="VAYI VEGA - All in One Tool", layout="wide")
+# --- PAGE CONFIG ---
+st.set_page_config(page_title="వాయి వేగ Multi-Tool", layout="wide")
 
-# Sidebar Menu
-st.sidebar.title("🚀 VAYI VEGA TOOLS")
-choice = st.sidebar.radio("ఒక ఆప్షన్ ఎంచుకోండి:", 
-    ["PDF to Excel Converter", "Smart PDF Editor (Text Removal)", "Barcode Generator"])
+# --- SIDEBAR NAVIGATION ---
+st.sidebar.title("వాయి వేగ Navigation")
+choice = st.sidebar.radio("ఏం చేయాలనుకుంటున్నారు?", 
+                         ["Home", "Barcode Generator", "PDF to Excel Converter", "Smart PDF Label Editor"])
 
-# --- 📂 1. PDF TO EXCEL CONVERTER ---
-if choice == "PDF to Excel Converter":
-    st.title("📄 PDF to Excel Converter")
-    uploaded_file = st.file_uploader("PDF ఫైల్‌ను అప్‌లోడ్ చేయండి", type=['pdf'])
-    
-    if uploaded_file is not None:
-        if st.button("Convert to Excel"):
-            all_data = []
-            with pdfplumber.open(uploaded_file) as pdf:
-                for page in pdf.pages:
-                    tables = page.extract_tables()
-                    for table in tables:
-                        df = pd.DataFrame(table)
-                        all_data.append(df)
-            
-            if all_data:
-                final_df = pd.concat(all_data, ignore_index=True)
-                output = BytesIO()
-                with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-                    final_df.to_excel(writer, index=False, header=False)
-                
-                st.success("Excel ఫైల్ సిద్ధమైంది!")
-                st.download_button("Download Excel File", data=output.getvalue(), file_name="converted_data.xlsx")
-            else:
-                st.error("ఈ PDF లో ఎటువంటి టేబుల్స్ దొరకలేదు.")
+LOGO_PATH = 'logo.png' 
 
-# --- ✏️ 2. SMART PDF EDITOR (Text Removal) ---
-elif choice == "Smart PDF Editor (Text Removal)":
-    st.title("✂️ Smart PDF Editor")
-    st.info("ఈ టూల్ ద్వారా PDF లో మీకు వద్దనుకున్న టెక్స్ట్‌ను (ఉదా: పాత అడ్రస్ లేదా నంబర్లు) తీసేయవచ్చు.")
-    
-    uploaded_file = st.file_uploader("PDF ఫైల్‌ను అప్‌లోడ్ చేయండి", type=['pdf'])
-    text_to_remove = st.text_input("తీసేయాల్సిన టెక్స్ట్ ఇవ్వండి (ఉదా: 9988776655):")
-    
-    if uploaded_file and text_to_remove:
-        if st.button("Remove Text & Save"):
-            doc = fitz.open(stream=uploaded_file.read(), filetype="pdf")
-            found = False
-            for page in doc:
-                text_instances = page.search_for(text_to_remove)
-                for inst in text_instances:
-                    found = True
-                    page.add_redact_annot(inst, fill=(1, 1, 1)) # వైట్ కలర్‌తో కవర్ చేస్తుంది
-                    page.apply_redactions()
-            
-            if found:
-                output_pdf = BytesIO()
-                doc.save(output_pdf)
-                st.success(f"'{text_to_remove}' సక్సెస్‌ఫుల్‌గా తీసేయబడింది!")
-                st.download_button("Download Edited PDF", data=output_pdf.getvalue(), file_name="edited_document.pdf")
-            else:
-                st.warning("మీరు ఇచ్చిన టెక్స్ట్ ఈ PDF లో ఎక్కడా దొరకలేదు.")
+# --- 🏠 0. HOME PAGE ---
+if choice == "Home":
+    st.title("Welcome to వాయి వేగ 🚀")
+    st.write("---")
+    st.info("పక్కన ఉన్న మెనూ నుండి మీకు కావాల్సిన టూల్ సెలెక్ట్ చేసుకోండి.")
+    st.markdown("""
+    - **Barcode Generator:** కంపెనీ పేరు మరియు లోగోతో 3-ఇంచ్ లేబుల్స్.
+    - **PDF to Excel:** ఢిల్లీవరీ పిడిఎఫ్ నుండి డేటా తీసి ఎక్సెల్ చేయడం (Custom Columns & PIN Fix).
+    - **Smart PDF Editor:** పాత పిడిఎఫ్ లేబుల్స్ లో అమౌంట్ మరియు వెయిట్ ఫిక్స్ చేయడం.
+    """)
 
-# --- 📦 3. BARCODE GENERATOR (With Logo Support) ---
+# --- 📦 1. BARCODE GENERATOR (With Centered Logo) ---
 elif choice == "Barcode Generator":
-    st.title("📦 DTDC Style Barcode Labels")
-    numbers_input = st.text_area("ట్రాకింగ్ నంబర్లను ఇక్కడ పేస్ట్ చేయండి (లైన్ కి ఒకటి):", height=150)
-    company_name = st.text_input("కంపెనీ పేరు ఇవ్వండి (ఉదా: VAYI VEGA):")
+    st.title("📦 Standard 3-Inch Barcode Labels")
+    numbers_input = st.text_area("ట్రాకింగ్ నంబర్లను ఇక్కడ పేస్ట్ చేయండి:", height=150)
+    company_name = st.text_input("కంపెనీ పేరు ఇవ్వండి:")
     
-    LOGO_FILENAME = 'logo.png' 
-    
-    if st.button("Generate Labels"):
+    if st.button("Generate Standard PDF"):
         if numbers_input.strip() and company_name.strip():
             tracking_list = [n.strip() for n in numbers_input.split('\n') if n.strip()]
             pdf_buffer = BytesIO()
             c = canvas.Canvas(pdf_buffer, pagesize=A4)
             width, height = A4
             
-            # Label Settings
-            label_width, label_height = 2.8 * inch, 1.4 * inch
-            margin_x, margin_y = 0.4 * inch, 0.4 * inch
+            # Label Size settings (3 inch x 1.5 inch)
+            label_width, label_height = 3 * inch, 1.5 * inch
+            margin_x, margin_y = 0.5 * inch, 0.5 * inch
             curr_x, curr_y = margin_x, height - margin_y - label_height
             
-            has_logo = os.path.exists(LOGO_FILENAME)
+            # --- లోగో ఉందో లేదో చెక్ చేయడం ---
+            has_logo = os.path.exists(LOGO_PATH)
             
             for num in tracking_list:
                 try:
@@ -101,29 +62,37 @@ elif choice == "Barcode Generator":
                     my_barcode = code_class(num, writer=ImageWriter())
                     
                     with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp:
-                        img_path = my_barcode.save(tmp.name.replace(".png", ""), 
-                                                 options={"write_text": True, "font_size": 10, "text_distance": 4})
+                        img_path = my_barcode.save(tmp.name.replace(".png", ""), options={"write_text": True, "font_size": 8, "text_distance": 3})
                     
-                    # బాక్స్ గీయడం (Label Border)
+                    # --- బాక్స్ చుట్టూ బార్డర్ (Label Border) ---
                     c.rect(curr_x, curr_y, label_width, label_height)
                     
-                    # 1. లోగో (ఉంటే)
-                    if has_logo:
-                        c.drawImage(LOGO_FILENAME, curr_x + 5, curr_y + label_height - 35, width=50, height=25, preserveAspectRatio=True)
-                    
-                    # 2. కంపెనీ పేరు
+                    # 1. కంపెనీ పేరు (పైన సెంటర్ లో)
                     c.setFont("Helvetica-Bold", 10)
-                    c.drawString(curr_x + 60, curr_y + label_height - 20, company_name.upper())
+                    c.drawCentredString(curr_x + (label_width/2), curr_y + label_height - 15, company_name.upper())
                     
-                    # 3. బార్‌కోడ్ ఇమేజ్
-                    c.drawImage(img_path, curr_x + 5, curr_y + 5, width=label_width - 10, height=label_height - 50)
+                    # 2. లోగో (సెంటర్ లో - కంపెనీ పేరుకి కొంచెం కింద)
+                    if has_logo:
+                        logo_w, logo_h = 60, 25 # లోగో సైజు (Adjustable)
+                        logo_y = curr_y + label_height - 45
+                        # సెంటర్ చేయడానికి లెక్క: (Label Width / 2) - (Logo Width / 2)
+                        logo_x_centered = curr_x + (label_width/2) - (logo_w/2)
+                        c.drawImage(LOGO_PATH, logo_x_centered, logo_y, width=logo_w, height=logo_h, preserveAspectRatio=True)
                     
-                    # పొజిషన్ అప్‌డేట్
+                    # 3. బార్‌కోడ్ ఇమేజ్ (నంబర్‌తో సహా - కింద సెంటర్ లో)
+                    barcode_w = label_width - 20
+                    barcode_h = label_height - 55
+                    barcode_x_centered = curr_x + 10
+                    barcode_y = curr_y + 10
+                    c.drawImage(img_path, barcode_x_centered, barcode_y, width=barcode_w, height=barcode_h)
+                    
+                    # తదుపరి లేబుల్ స్థానం అప్‌డేట్
                     curr_x += label_width + 0.2 * inch
                     if curr_x + label_width > width - margin_x:
                         curr_x = margin_x
-                        curr_y -= label_height + 0.2 * inch
+                        curr_y -= label_height + 0.3 * inch
                         
+                    # పేజీ నిండిపోతే కొత్త పేజీ
                     if curr_y < margin_y:
                         c.showPage()
                         curr_y = height - margin_y - label_height
@@ -132,10 +101,108 @@ elif choice == "Barcode Generator":
                     if os.path.exists(img_path): os.remove(img_path)
                     
                 except Exception as e:
-                    st.error(f"Error: {e}")
+                    st.error(f"Error for {num}: {e}")
             
             c.save()
-            st.success("అన్ని లేబుల్స్ తయారయ్యాయి!")
-            st.download_button("Download PDF", data=pdf_buffer.getvalue(), file_name="labels.pdf")
+            st.success("లేబుల్స్ తయారయ్యాయి!")
+            st.download_button("Download Labels PDF", data=pdf_buffer.getvalue(), file_name=f"{company_name}_Standard.pdf")
         else:
             st.warning("దయచేసి నంబర్లు మరియు కంపెనీ పేరు ఎంటర్ చేయండి.")
+
+# --- 📊 2. PDF TO EXCEL CONVERTER ---
+elif choice == "PDF to Excel Converter":
+    st.title("📊 వాయి వేగ PDF to Excel")
+    
+    col_b, col_h = st.columns(2)
+    with col_b:
+        client_name = st.text_input("క్లయింట్ నేమ్ / ఐడి ఎంటర్ చేయండి (Column B):")
+    with col_h:
+        weight_val = st.text_input("వెయిట్ (Weight) ఎంటర్ చేయండి (Column H):")
+
+    pdf_files = st.file_uploader("PDF ఫైల్స్ అప్‌లోడ్ చేయండి", type=['pdf'], accept_multiple_files=True)
+
+    if pdf_files:
+        all_extracted_data = []
+        for pdf_file in pdf_files:
+            with pdfplumber.open(pdf_file) as pdf:
+                for page in pdf.pages:
+                    text = page.extract_text()
+                    if text:
+                        # తేదీ ఫార్మాట్: 26-02-2026
+                        date_match = re.search(r"(\d{2}-[a-zA-Z]{3}-\d{4})", text)
+                        final_date = ""
+                        if date_match:
+                            try:
+                                d_obj = datetime.strptime(date_match.group(1), '%d-%b-%Y')
+                                final_date = d_obj.strftime('%d-%m-%Y')
+                            except: final_date = ""
+
+                        awb = re.search(r"AWB#\s*(\d+)", text)
+                        name = re.search(r"Ship to\s*-\s*([^\n]+)", text)
+                        
+                        # --- PIN CODE FIX ---
+                        pin = re.search(r"PIN\s*[:\-\s]*(\d{6})", text)
+
+                        if awb or name:
+                            all_extracted_data.append({
+                                "A": "", 
+                                "B": client_name, 
+                                "C": final_date,
+                                "D": awb.group(1) if awb else "",
+                                "E": name.group(1).strip() if name else "",
+                                "F": pin.group(1) if pin else "",
+                                "G": "", 
+                                "H": weight_val
+                            })
+
+        if all_extracted_data:
+            df = pd.DataFrame(all_extracted_data)
+            st.dataframe(df)
+            
+            output = BytesIO()
+            with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+                df.to_excel(writer, index=False, sheet_name='Data')
+                workbook = writer.book
+                worksheet = writer.sheets['Data']
+
+                # ఫార్మాటింగ్: Center, Middle, Wrap Off
+                cell_format = workbook.add_format({
+                    'align': 'center', 
+                    'valign': 'vcenter', 
+                    'text_wrap': False
+                })
+
+                # ఆటో కాలమ్ విడ్త్
+                for i, col in enumerate(df.columns):
+                    worksheet.set_column(i, i, 20, cell_format)
+
+            st.download_button("Download Excel File", data=output.getvalue(), file_name="Vaayi_Vega_Data.xlsx")
+
+# --- 📄 3. SMART PDF LABEL EDITOR ---
+elif choice == "Smart PDF Label Editor":
+    st.title("📄 Smart PDF Label Editor")
+    up_files = st.file_uploader("PDF ఫైల్స్ సెలెక్ట్ చేయండి", type=["pdf"], accept_multiple_files=True)
+    if up_files:
+        for u_file in up_files:
+            st.markdown("---")
+            st.subheader(f"Editing: {u_file.name}")
+            c1, c2 = st.columns(2)
+            with c1: n_amt = st.text_input(f"అమౌంట్ Rs.", key=f"a_{u_file.name}")
+            with c2: n_wt = st.text_input(f"వెయిట్ KG", key=f"w_{u_file.name}")
+            if st.button(f"Process {u_file.name}"):
+                if n_amt and n_wt:
+                    doc = fitz.open(stream=u_file.read(), filetype="pdf")
+                    page = doc[0]
+                    # అమౌంట్ బాక్స్ క్లీన్ చేసి కొత్త అమౌంట్ వేయడం
+                    page.add_redact_annot(fitz.Rect(100, 480, 260, 515), fill=(1,1,1))
+                    page.apply_redactions()
+                    page.insert_text((75, 505), f"Rs. {n_amt}", fontsize=20)
+                    # వెయిట్ ఎడిట్
+                    w_hit = page.search_for("Weight")
+                    if w_hit:
+                        page.add_redact_annot(fitz.Rect(w_hit[0].x1 + 2, w_hit[0].y0 - 2, 450, w_hit[0].y1 + 2), fill=(1,1,1))
+                        page.apply_redactions()
+                        page.insert_text((w_hit[0].x1 + 5, w_hit[0].y1 - 2), f": {n_wt} KG", fontsize=14)
+                    res = BytesIO()
+                    doc.save(res)
+                    st.download_button(f"Download {u_file.name}", data=res.getvalue(), file_name=f"Fixed_{u_file.name}")
