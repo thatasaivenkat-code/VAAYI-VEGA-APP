@@ -89,113 +89,89 @@ elif choice == "Barcode Generator":
             st.download_button("Download Labels PDF", data=pdf_buffer.getvalue(), file_name=f"{company_name}_Standard.pdf")
 
 # --- 📊 2. PDF TO EXCEL CONVERTER ---
-elif choice == "PDF to Excel Converter":
-    st.title("📊 వాయి వేగ PDF to Excel")
-    col_b, col_h = st.columns(2)
-    with col_b: client_name = st.text_input("క్ลయింట్ నేమ్ / ఐడి ఎంటర్ చేయండి (Column B):")
-    with col_h: weight_val = st.text_input("వెయిట్ (Weight) ఎంటర్ చేయండి (Column H):")
-    pdf_files = st.file_uploader("PDF ఫైల్స్ అప్‌లోడ్ చేయండి", type=['pdf'], accept_multiple_files=True)
-    if pdf_files:
-        all_extracted_data = []
-        for pdf_file in pdf_files:
-            with pdfplumber.open(pdf_file) as pdf:
-                for page in pdf.pages:
-                    text = page.extract_text()
-                    if text:
-                        date_match = re.search(r"(\d{2}-[a-zA-Z]{3}-\d{4})"elif choice == "PDF to Excel Converter":
-    st.title("📊 వాయి వేగ PDF to Excel (Delhivery & DTDC)")
-    
-    # Selection for Courier Type
-    courier_type = st.selectbox("కొరియర్ రకాన్ని ఎంచుకోండి:", ["Delhivery", "DTDC"])
-    
-    col_b, col_h = st.columns(2)
-    with col_b: client_name = st.text_input("క్లయింట్ నేమ్ / ఐడి (Column B - ఖాళీగా వదిలేస్తే PDF నుండి తీసుకుంటుంది):")
-    with col_h: weight_val = st.text_input("వెయిట్ (Weight) ఎంటర్ చేయండి (Column H):")
-    
-    pdf_files = st.file_uploader("PDF ఫైల్స్ అప్‌లోడ్ చేయండి", type=['pdf'], accept_multiple_files=True)
+    elif choice == "PDF to Excel Converter":
+        st.title("📊 వాయి వేగ PDF to Excel (Delhivery & DTDC)")
+        
+        courier_type = st.selectbox("కొరియర్ రకాన్ని ఎంచుకోండి:", ["Delhivery", "DTDC"])
+        
+        col_b, col_h = st.columns(2)
+        with col_b: client_name = st.text_input("క్లయింట్ నేమ్ / ఐడి (Column B):")
+        with col_h: weight_val = st.text_input("వెయిట్ (Weight) ఎంటర్ చేయండి (Column H):")
+        
+        pdf_files = st.file_uploader("PDF ఫైల్స్ అప్‌లోడ్ చేయండి", type=['pdf'], accept_multiple_files=True)
 
-    if pdf_files:
-        all_extracted_data = []
-        for pdf_file in pdf_files:
-            with pdfplumber.open(pdf_file) as pdf:
-                for page in pdf.pages:
-                    text = page.extract_text()
-                    if not text: continue
-                    
-                    # ---共通 (Common) Data Extraction ---
-                    final_date = ""
-                    awb = ""
-                    dest_name = ""
-                    dest_pin = ""
-                    from_id = client_name # Default to user input
-
-                    if courier_type == "Delhivery":
-                        # Delhivery Logic
-                        date_match = re.search(r"(\d{2}-[a-zA-Z]{3}-\d{4})", text)
-                        if date_match:
-                            try:
-                                d_obj = datetime.strptime(date_match.group(1), '%d-%b-%Y')
-                                final_date = d_obj.strftime('%d-%m-%Y')
-                            except: pass
+        if pdf_files:
+            all_extracted_data = []
+            for pdf_file in pdf_files:
+                with pdfplumber.open(pdf_file) as pdf:
+                    for page in pdf.pages:
+                        text = page.extract_text()
+                        if not text: continue
                         
-                        awb_match = re.search(r"AWB#\s*(\d+)", text)
-                        awb = awb_match.group(1) if awb_match else ""
-                        
-                        name_match = re.search(r"Ship to\s*-\s*([^\n]+)", text)
-                        dest_name = name_match.group(1).strip() if name_match else ""
-                        
-                        pin_match = re.search(r"PIN\s*[:\-\s]*(\d{6})", text)
-                        dest_pin = pin_match.group(1) if pin_match else ""
+                        final_date = ""
+                        awb = ""
+                        dest_name = ""
+                        dest_pin = ""
+                        from_id = client_name
 
-                    else: # --- DTDC Logic ---
-                        # 1. Date (Ship Date: 28-02-2026)
-                        date_match = re.search(r"Ship Date\s*:\s*(\d{2}-\d{2}-\d{4})", text)
-                        final_date = date_match.group(1) if date_match else ""
+                        if courier_type == "Delhivery":
+                            # Delhivery Extraction
+                            date_match = re.search(r"(\d{2}-[a-zA-Z]{3}-\d{4})", text)
+                            if date_match:
+                                try:
+                                    d_obj = datetime.strptime(date_match.group(1), '%d-%b-%Y')
+                                    final_date = d_obj.strftime('%d-%m-%Y')
+                                except: pass
+                            
+                            awb_match = re.search(r"AWB#\s*(\d+)", text)
+                            awb = awb_match.group(1) if awb_match else ""
+                            
+                            name_match = re.search(r"Ship to\s*-\s*([^\n]+)", text)
+                            dest_name = name_match.group(1).strip() if name_match else ""
+                            
+                            pin_match = re.search(r"PIN\s*[:\-\s]*(\d{6})", text)
+                            dest_pin = pin_match.group(1) if pin_match else ""
 
-                        # 2. Tracking ID (Alpha + Number under barcode)
-                        # ఉదాహరణకు H3000311793 వంటి 11 డిజిట్ కోడ్
-                        awb_match = re.search(r"([A-Z][0-9]{10})", text)
-                        awb = awb_match.group(1) if awb_match else ""
+                        else: 
+                            # DTDC Extraction Logic (నీ లేబుల్ ఫోటో ప్రకారం)
+                            # 1. Date: Ship Date పక్కన ఉన్నది
+                            date_match = re.search(r"Ship Date\s*:\s*(\d{2}-\d{2}-\d{4})", text)
+                            final_date = date_match.group(1) if date_match else ""
 
-                        # 3. Destination Name (To పక్కన మొదటి లైన్)
-                        name_match = re.search(r"TO:\s*\n?([^\n,]+)", text)
-                        dest_name = name_match.group(1).strip() if name_match else ""
+                            # 2. Tracking: బార్ కోడ్ కింద ఉన్న H3000... నంబర్
+                            awb_match = re.search(r"([A-Z][0-9]{10})", text)
+                            awb = awb_match.group(1) if awb_match else ""
 
-                        # 4. Destination Pincode (6 digit number)
-                        pin_match = re.search(r"Pin:\s*(\d{6})|PIN:(\d{6})|(\d{6})", text)
-                        if pin_match:
-                            # అన్ని గ్రూపులలో వెతికి 6 డిజిట్ నెంబర్ తీసుకుంటుంది
-                            dest_pin = next(g for g in pin_match.groups() if g and len(g) == 6)
+                            # 3. Name: TO కింద ఉన్న మొదటి లైన్
+                            name_match = re.search(r"TO:\s*\n?([^\n,]+)", text)
+                            dest_name = name_match.group(1).strip() if name_match else ""
 
-                        # 5. Client ID from FROM section (if column B is empty)
-                        if not from_id:
-                            # From కింద పేరు పక్కన ఉండే నెంబర్ కోసం వెతుకుతుంది
-                            from_match = re.search(r"FROM:\s*\n?([a-zA-Z]+)(\d+)", text)
-                            if from_match:
-                                from_id = from_match.group(2) # కేవలం న్యూమరిక్ పార్ట్
+                            # 4. PIN: అడ్రస్ లో ఉన్న 6 డిజిట్ నంబర్
+                            pin_match = re.search(r"Pin[:\-\s]*(\d{6})|PIN[:\-\s]*(\d{6})|(\d{6})", text)
+                            if pin_match:
+                                dest_pin = next(g for g in pin_match.groups() if g and len(g) == 6)
 
-                    if awb or dest_name:
-                        all_extracted_data.append({
-                            "A": "", 
-                            "B": from_id, 
-                            "C": final_date,
-                            "D": awb,
-                            "E": dest_name,
-                            "F": dest_pin,
-                            "G": "", 
-                            "H": weight_val
-                        })
+                            # 5. Client ID: FROM సెక్షన్ లో Kalamkarishop పక్కన ఉండే నంబర్ (28)
+                            if not from_id:
+                                from_match = re.search(r"FROM:\s*\n?([a-zA-Z]+)(\d+)", text)
+                                if from_match:
+                                    from_id = from_match.group(2)
 
-        if all_extracted_data:
-            df = pd.DataFrame(all_extracted_data)
-            st.success(f"✅ {len(all_extracted_data)} లేబుల్స్ నుండి డేటా సేకరించబడింది!")
-            st.dataframe(df)
-            
-            # Excel Download
-            output = BytesIO()
-            with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-                df.to_excel(writer, index=False, sheet_name='Data')
-            st.download_button("📥 Download Excel File", data=output.getvalue(), file_name="Vaayi_Vega_Extracted.xlsx")
+                        if awb or dest_name:
+                            all_extracted_data.append({
+                                "A": "", "B": from_id, "C": final_date, "D": awb,
+                                "E": dest_name, "F": dest_pin, "G": "", "H": weight_val
+                            })
+
+            if all_extracted_data:
+                df = pd.DataFrame(all_extracted_data)
+                st.success(f"✅ {len(all_extracted_data)} లేబుల్స్ సక్సెస్!")
+                st.dataframe(df)
+                
+                output = BytesIO()
+                with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+                    df.to_excel(writer, index=False, sheet_name='Data')
+                st.download_button("📥 Excel డౌన్లోడ్ చెయ్", data=output.getvalue(), file_name="Vaayi_Vega_Extracted.xlsx")
 
 # --- 📄 3. SMART PDF LABEL EDITOR ---
 elif choice == "Smart PDF Label Editor":
@@ -363,6 +339,7 @@ elif choice == "Volumetric Calculator":
             output_v = BytesIO()
             df_v.to_excel(output_v, index=False)
             st.download_button("Download Updated Results", data=output_v.getvalue(), file_name="Volumetric_Report.xlsx")
+
 
 
 
