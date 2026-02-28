@@ -197,37 +197,48 @@ elif choice == "Image Upscaler (4K)":
                 except Exception as e: st.error(f"Error: {e}")
             else: st.error("Model file not found!")
 
-# --- 📝 5. IMAGE TO TEXT (OCR - ENHANCED) ---
+# --- 📝 5. IMAGE TO TEXT (OCR - WITH CAMERA & UPLOAD) ---
 elif choice == "Image to Text (OCR)":
     st.title("📝 Image to Text Converter")
-    st.write("హ్యాండ్‌రైటింగ్ కోసం మెరుగుపరచబడిన AI మోడల్.")
-    up_img_ocr = st.file_uploader("ఇమేజ్ సెలెక్ట్ చేయండి", type=['png', 'jpg', 'jpeg'], key="ocr_uploader")
+    st.write("ఫోటో అప్‌లోడ్ చేయండి లేదా డైరెక్ట్‌గా కెమెరాతో ఫోటో తీయండి.")
+
+    # రెండు ఆప్షన్ల కోసం ట్యాబ్స్
+    tab1, tab2 = st.tabs(["📤 Upload Image", "📸 Take a Photo"])
     
-    if up_img_ocr:
-        image = Image.open(up_img_ocr)
-        st.image(image, caption="Uploaded Image", width=400)
+    img_file = None
+    
+    with tab1:
+        up_img = st.file_uploader("గ్యాలరీ నుండి ఫోటో ఎంచుకోండి", type=['png', 'jpg', 'jpeg'], key="upload_ocr")
+        if up_img:
+            img_file = up_img
+            
+    with tab2:
+        cam_img = st.camera_input("కెమెరాతో ఫోటో తీయండి", key="camera_ocr")
+        if cam_img:
+            img_file = cam_img
+
+    if img_file:
+        image = Image.open(img_file)
+        st.image(image, caption="Selected Image", width=300)
         
         if st.button("Extract Text (టెక్స్ట్ తీయి)"):
-            with st.spinner("AI క్లారిటీ పెంచి చదువుతోంది..."):
-                # 1. ఇమేజ్ ని క్లీన్ చేసే ప్రాసెస్ (Pre-processing)
-                img_array = np.array(image.convert('L')) # బ్లాక్ అండ్ వైట్ కి మార్చడం
-                # కాంట్రాస్ట్ పెంచడం (CLAHE వాడి)
+            with st.spinner("AI చదువుతోంది, ఒక్క నిమిషం..."):
+                # హ్యాండ్‌రైటింగ్ కోసం ఇమేజ్ క్లీనింగ్ (Pre-processing)
+                img_array = np.array(image.convert('L'))
                 clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
                 enhanced_img = clahe.apply(img_array)
                 
-                # 2. EasyOCR రీడర్
+                # EasyOCR Reader
                 reader = easyocr.Reader(['en', 'te'])
-                # క్లీన్ చేసిన ఇమేజ్ ని AI కి ఇవ్వడం
-                result = reader.readtext(enhanced_img, detail=0, paragraph=True) # paragraph=True వాడితే లైన్లు కలవవు
+                result = reader.readtext(enhanced_img, detail=0, paragraph=True)
                 
                 if result:
                     full_text = "\n".join(result)
-                    st.success("టెక్స్ట్ లభించింది!")
-                    st.text_area("బయటకు తీసిన టెక్స్ట్:", full_text, height=300)
-                    st.download_button("Download as TXT", full_text, file_name="extracted_text.txt")
+                    st.success("✅ టెక్స్ట్ లభించింది!")
+                    st.text_area("బయటకు తీసిన టెక్స్ట్:", full_text, height=250)
+                    st.download_button("Download Text File", full_text, file_name="extracted.txt")
                 else:
-                    st.warning("టెక్స్ట్ ఏమీ దొరకలేదు.")
-
+                    st.warning("ఈ ఫోటోలో టెక్స్ట్ ఏమీ దొరకలేదు. లైటింగ్ సరిగ్గా ఉండేలా చూసుకోండి.")
 # --- ⚖️ 6. VOLUMETRIC WEIGHT CALCULATOR (KG & GRAMS) ---
 elif choice == "Volumetric Calculator":
     st.title("⚖️ Volumetric Weight Calculator")
@@ -283,5 +294,6 @@ elif choice == "Volumetric Calculator":
             output_v = BytesIO()
             df_v.to_excel(output_v, index=False)
             st.download_button("Download Updated Results", data=output_v.getvalue(), file_name="Volumetric_Report.xlsx")
+
 
 
