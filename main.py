@@ -218,48 +218,45 @@ elif choice == "Smart PDF Label Editor":
                     doc.save(res)
                     st.download_button(f"Download {u_file.name}", data=res.getvalue(), file_name=f"Fixed_{u_file.name}")
 
-# --- 🖼️ 4. IMAGE UPSCALER (4K QUALITY) ---
+# --- 🖼️ 4. IMAGE UPSCALER (MEMORY OPTIMIZED) ---
 elif choice == "Image Upscaler (4K)":
     st.title("🖼️ AI Image Upscaler (4K Quality)")
-    st.info("ఫోటో కలర్ మారకుండా 4K లోకి మారుతుంది మరియు ఆటోమేటిక్‌గా డౌన్‌లోడ్ అవుతుంది.")
     
     model_path = "EDSR_x4.pb"
     up_img = st.file_uploader("ఒక ఫోటోను అప్‌లోడ్ చేయండి", type=['png', 'jpg', 'jpeg'])
     
     if up_img:
-        st.image(up_img, caption="Original Image", use_container_width=True)
-        if st.button("Convert to 4K & Auto Download"):
-            if os.path.exists(model_path):
-                progress_text = st.empty()
+        st.image(up_img, caption="Original Image", width=300)
+        if st.button("Convert to 4K"):
+            with st.spinner("AI ప్రాసెస్ చేస్తోంది... (పెద్ద ఫోటోలకు సమయం పట్టవచ్చు)"):
+                # 1. ఇమేజ్ ని లోడ్ చేయడం
+                file_bytes = np.asarray(bytearray(up_img.read()), dtype=np.uint8)
+                img = cv2.imdecode(file_bytes, 1)
+
+                # 2. ఇమేజ్ మరీ పెద్దగా ఉంటే రీసైజ్ చేయడం (Safety Step)
+                h, w = img.shape[:2]
+                if w > 1200: # ఫోటో వెడల్పు 1200px దాటితే
+                    new_w = 800
+                    new_h = int(h * (new_w / w))
+                    img = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_AREA)
+
                 try:
-                    file_bytes = np.asarray(bytearray(up_img.read()), dtype=np.uint8)
-                    img = cv2.imdecode(file_bytes, 1)
                     sr = cv2.dnn_superres.DnnSuperResImpl_create()
                     sr.readModel(model_path)
                     sr.setModel("edsr", 4) 
                     
-                    with st.spinner("AI పని చేస్తోంది..."):
-                        # కౌంట్‌డౌన్ లూప్
-                        for i in range(60, 0, -1):
-                            progress_text.subheader(f"⏳ అంచనా సమయం: ఇంకా {i} సెకన్లు...")
-                            if i == 59: 
-                                result = sr.upsample(img)
-                                break
-                        progress_text.empty()
-                        
-                        # Color Fix: BGR to RGB for Streamlit Display
-                        result_rgb = cv2.cvtColor(result, cv2.COLOR_BGR2RGB)
-                        st.success("🎉 4K కన్వర్షన్ పూర్తయింది!")
-                        st.image(result_rgb, caption="Upscaled 4K Image", use_container_width=True)
-                        
-                        # Auto Download: Convert back to BGR for encoding
-                        _, buffer = cv2.imencode('.png', result)
-                        b64 = base64.b64encode(buffer).decode()
-                        filename = "VayiVega_4K_Result.png"
-                        href = f'<a id="vv_dl" href="data:image/png;base64,{b64}" download="{filename}"></a>'
-                        st.markdown(href, unsafe_allow_html=True)
-                        st.markdown("<script>document.getElementById('vv_dl').click();</script>", unsafe_allow_html=True)
-                        st.info("ఫైల్ మీ 'Downloads' ఫోల్డర్ లో సేవ్ అయింది.")
-                except Exception as e: st.error(f"Error: {e}")
-            else: st.error(f"Model file ({model_path}) దొరకలేదు! GitHub లో అప్‌లోడ్ చేయండి.")
-
+                    result = sr.upsample(img)
+                    
+                    # రిజల్ట్ చూపించడం
+                    result_rgb = cv2.cvtColor(result, cv2.COLOR_BGR2RGB)
+                    st.success("🎉 4K కన్వర్షన్ పూర్తయింది!")
+                    st.image(result_rgb, caption="Upscaled Image", use_container_width=True)
+                    
+                    # డౌన్‌లోడ్ బటన్
+                    _, buffer = cv2.imencode('.png', result)
+                    st.download_button("Download 4K Photo", data=buffer.tobytes(), file_name="VayiVega_4K.png")
+                    
+                    # మెమరీ క్లియర్ చేయడం
+                    del img, result, result_rgb
+                except Exception as e:
+                    st.error("సర్వర్ మెమరీ సరిపోవట్లేదు. దయచేసి చిన్న ఫోటోతో ట్రై చేయండి.")
