@@ -191,19 +191,23 @@ elif choice == "PDF to Excel Converter":
                     worksheet.set_column(i, i, 20, cell_format)
             st.download_button("Download Excel File", data=output.getvalue(), file_name="Vaayi_Vega_Data.xlsx")
 
-# --- 📄 3. SMART PDF LABEL EDITOR (DTDC & DELHIVERY) ---
+# --- 📄 3. SMART PDF LABEL EDITOR (FINAL ADJUSTED VERSION) ---
 elif choice == "Smart PDF Label Editor":
     st.title("📄 Smart PDF Label Editor")
     
-    # కంపెనీ సెలెక్షన్
-    company_type = st.radio("ఏ కంపెనీ లేబుల్ ఎడిట్ చేయాలి?", ["DTDC", "Delhivery"], horizontal=True)
+    company_type = st.radio("ఏ కంపెనీ లేబుల్?", ["DTDC", "Delhivery"], horizontal=True)
     
-    up_files = st.file_uploader(f"{company_type} PDF ఫైల్స్ సెలెక్ట్ చేయండి", type=["pdf"], accept_multiple_files=True)
+    page_option = st.selectbox("ఏ పేజీలను ఎడిట్ చేయాలి?", ["All Pages", "Custom Page Number"])
+    custom_pg = 1
+    if page_option == "Custom Page Number":
+        custom_pg = st.number_input("ఏ పేజీ నంబర్ ఎడిట్ చేయాలి?", min_value=1, step=1)
+
+    up_files = st.file_uploader(f"{company_type} PDF ఫైల్స్", type=["pdf"], accept_multiple_files=True)
     
     if up_files:
         for u_file in up_files:
             st.markdown("---")
-            st.subheader(f"Editing: {u_file.name} ({company_type})")
+            st.subheader(f"Editing: {u_file.name}")
             
             c1, c2 = st.columns(2)
             with c1: n_amt = st.text_input(f"అమౌంట్ Rs.", key=f"a_{u_file.name}")
@@ -211,48 +215,49 @@ elif choice == "Smart PDF Label Editor":
             
             if st.button(f"Process {u_file.name}"):
                 if n_amt and n_wt:
-                    # PDF ఓపెన్ చేయడం
                     doc = fitz.open(stream=u_file.read(), filetype="pdf")
-                    page = doc[0]
+                    num_pages = len(doc)
                     
-                    if company_type == "DTDC":
-                        # --- పాత DTDC లాజిక్ ---
-                        # అమౌంట్ బాక్స్ క్లీన్ (Redact)
-                        page.add_redact_annot(fitz.Rect(100, 480, 260, 515), fill=(1,1,1))
-                        page.apply_redactions()
-                        page.insert_text((75, 505), f"Rs. {n_amt}", fontsize=20)
-                        
-                        # వెయిట్ ఎడిట్
-                        w_hit = page.search_for("Weight")
-                        if w_hit:
-                            page.add_redact_annot(fitz.Rect(w_hit[0].x1 + 2, w_hit[0].y0 - 2, 450, w_hit[0].y1 + 2), fill=(1,1,1))
-                            page.apply_redactions()
-                            page.insert_text((w_hit[0].x1 + 5, w_hit[0].y1 - 2), f": {n_wt} KG", fontsize=14)
-                    
-                    else:
-                        # --- కొత్త Delhivery లాజిక్ ---
-                        # "Product Name" ఎక్కడ ఉందో వెతకడం
-                        p_hit = page.search_for("Product Name")
-                        if p_hit:
-                            # Product Name కింద కొంచెం గ్యాప్ ఇచ్చి (y-axis + 25) అమౌంట్ & వెయిట్ ప్రింట్ చేయడం
-                            start_x = p_hit[0].x0
-                            start_y = p_hit[0].y1 + 25
-                            
-                            display_text = f"Total Amt: Rs. {n_amt}  |  Weight: {n_wt} KG"
-                            
-                            # టెక్స్ట్ నీట్‌గా కనిపించడానికి బ్యాక్ గ్రౌండ్ క్లీన్ చేయడం (Optional)
-                            page.add_redact_annot(fitz.Rect(start_x, start_y - 15, start_x + 350, start_y + 10), fill=(1,1,1))
-                            page.apply_redactions()
-                            
-                            # కొత్త డేటాను ఇన్సర్ట్ చేయడం
-                            page.insert_text((start_x, start_y), display_text, fontsize=12, color=(0,0,0))
-                        else:
-                            st.error("లేబుల్ లో 'Product Name' దొరకలేదు. దయచేసి సరైన PDF అప్‌లోడ్ చేయండి.")
+                    pages_to_edit = range(num_pages) if page_option == "All Pages" else [custom_pg - 1]
 
-                    # సేవ్ మరియు డౌన్‌లోడ్
+                    for p_idx in pages_to_edit:
+                        if 0 <= p_idx < num_pages:
+                            page = doc[p_idx]
+                            
+                            if company_type == "DTDC":
+                                # --- DTDC: అమౌంట్ ఎడిట్ ---
+                                page.add_redact_annot(fitz.Rect(100, 480, 260, 515), fill=(1,1,1))
+                                page.apply_redactions()
+                                page.insert_text((75, 505), f"Rs. {n_amt}", fontsize=20, fontname="hebo")
+                                
+                                # --- DTDC: వెయిట్ 1mm కిందకు అడ్జస్ట్మెంట్ (Position -5.2) ---
+                                w_hit = page.search_for("Weight")
+                                if w_hit:
+                                    page.add_redact_annot(fitz.Rect(w_hit[0].x1 + 2, w_hit[0].y0 - 2, 450, w_hit[0].y1 + 2), fill=(1,1,1))
+                                    page.apply_redactions()
+                                    # ఇక్కడ -8 ఉన్న చోట -5.2 చేశాను (ఇది సరిగ్గా 1mm కిందకు వస్తుంది)
+                                    page.insert_text((w_hit[0].x1 + 5, w_hit[0].y1 - 5.2), f": {n_wt} KG", fontsize=14, fontname="hebo")
+                            
+                            else:
+                                # --- Delhivery: అమౌంట్ కింద వెయిట్ వచ్చేలా ---
+                                p_hit = page.search_for("Product")
+                                if p_hit:
+                                    start_x = p_hit[0].x0 + 2
+                                    amt_y = p_hit[0].y1 + 18 
+                                    wt_y = amt_y + 16 
+                                    
+                                    page.add_redact_annot(fitz.Rect(start_x, amt_y - 12, start_x + 200, wt_y + 5), fill=(1,1,1))
+                                    page.apply_redactions()
+                                    
+                                    # Rs. అమౌంట్ మరియు వెయిట్ (కిందకు)
+                                    page.insert_text((start_x, amt_y), f"Rs. {n_amt}", fontsize=12, fontname="hebo", color=(0,0,0))
+                                    page.insert_text((start_x, wt_y), f"Weight: {n_wt} KG", fontsize=12, fontname="hebo", color=(0,0,0))
+                        else:
+                            st.warning(f"పేజీ {p_idx+1} ఈ ఫైల్ లో లేదు.")
+
                     res = BytesIO()
                     doc.save(res)
-                    st.success(f"{u_file.name} సిద్ధంగా ఉంది!")
+                    st.success(f"ప్రాసెస్ పూర్తయింది!")
                     st.download_button(f"Download {u_file.name}", data=res.getvalue(), file_name=f"Fixed_{u_file.name}")
 # --- 🖼️ 4. IMAGE UPSCALER (MEMORY OPTIMIZED) ---
 elif choice == "Image Upscaler (4K)":
@@ -296,4 +301,5 @@ elif choice == "Image Upscaler (4K)":
                     del img, result, result_rgb
                 except Exception as e:
                     st.error("సర్వర్ మెమరీ సరిపోవట్లేదు. దయచేసి చిన్న ఫోటోతో ట్రై చేయండి.")
+
 
