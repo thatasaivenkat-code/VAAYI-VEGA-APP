@@ -8,3 +8,5 @@ Pillow
 xlsxwriter
 opencv-contrib-python-headless
 numpy
+easyocr
+opencv-python-headless
