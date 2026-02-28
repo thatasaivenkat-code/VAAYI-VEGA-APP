@@ -196,23 +196,33 @@ elif choice == "Image Upscaler (4K)":
                 except Exception as e: st.error(f"Error: {e}")
             else: st.error("Model file not found!")
 
-# --- 📝 5. IMAGE TO TEXT (OCR) ---
+# --- 📝 5. IMAGE TO TEXT (OCR - ENHANCED) ---
 elif choice == "Image to Text (OCR)":
     st.title("📝 Image to Text Converter")
-    st.write("ఫోటోను అప్‌లోడ్ చేయండి, AI అందులోని టెక్స్ట్‌ని (English/Telugu) చదివి మీకు ఇస్తుంది.")
+    st.write("హ్యాండ్‌రైటింగ్ కోసం మెరుగుపరచబడిన AI మోడల్.")
     up_img_ocr = st.file_uploader("ఇమేజ్ సెలెక్ట్ చేయండి", type=['png', 'jpg', 'jpeg'], key="ocr_uploader")
+    
     if up_img_ocr:
         image = Image.open(up_img_ocr)
         st.image(image, caption="Uploaded Image", width=400)
+        
         if st.button("Extract Text (టెక్స్ట్ తీయి)"):
-            with st.spinner("AI చదువుతోంది, ఒక్క నిమిషం..."):
+            with st.spinner("AI క్లారిటీ పెంచి చదువుతోంది..."):
+                # 1. ఇమేజ్ ని క్లీన్ చేసే ప్రాసెస్ (Pre-processing)
+                img_array = np.array(image.convert('L')) # బ్లాక్ అండ్ వైట్ కి మార్చడం
+                # కాంట్రాస్ట్ పెంచడం (CLAHE వాడి)
+                clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+                enhanced_img = clahe.apply(img_array)
+                
+                # 2. EasyOCR రీడర్
                 reader = easyocr.Reader(['en', 'te'])
-                img_array = np.array(image)
-                result = reader.readtext(img_array, detail=0)
+                # క్లీన్ చేసిన ఇమేజ్ ని AI కి ఇవ్వడం
+                result = reader.readtext(enhanced_img, detail=0, paragraph=True) # paragraph=True వాడితే లైన్లు కలవవు
+                
                 if result:
                     full_text = "\n".join(result)
                     st.success("టెక్స్ట్ లభించింది!")
                     st.text_area("బయటకు తీసిన టెక్స్ట్:", full_text, height=300)
                     st.download_button("Download as TXT", full_text, file_name="extracted_text.txt")
                 else:
-                    st.warning("ఈ ఫోటోలో టెక్స్ట్ ఏమీ దొరకలేదు.")
+                    st.warning("టెక్స్ట్ ఏమీ దొరకలేదు.")
