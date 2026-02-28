@@ -25,17 +25,89 @@ st.sidebar.title("వాయి వేగ Navigation")
 choice = st.sidebar.radio("ఏం చేయాలనుకుంటున్నారు?", 
                          ["Home", "Barcode Generator", "PDF to Excel Converter", "Smart PDF Label Editor", "Image Upscaler (4K)"])
 
-# --- 🏠 0. HOME PAGE ---
+# --- 🏠 0. HOME PAGE (COLORFUL DESIGN) ---
 if choice == "Home":
-    st.title("Welcome to వాయి వేగ 🚀")
-    st.write("---")
-    st.info("పక్కన ఉన్న మెనూ నుండి మీకు కావాల్సిన టూల్ సెలెక్ట్ చేసుకోండి.")
+    # Custom CSS for styling
     st.markdown("""
-    - **Barcode Generator:** కంపెనీ పేరుతో 3-ఇంచ్ లేబుల్స్.
-    - **PDF to Excel:** ఢిల్లీవరీ పిడిఎఫ్ నుండి డేటా తీసి ఎక్సెల్ చేయడం.
-    - **Smart PDF Editor:** పాత పిడిఎఫ్ లేబుల్స్ లో అమౌంట్ మరియు వెయిట్ ఫిక్స్ చేయడం.
-    - **Image Upscaler (4K):** తక్కువ క్వాలిటీ ఫోటోలను 4K AI క్వాలిటీలోకి మార్చడం.
-    """)
+        <style>
+        .main-title {
+            font-size: 50px;
+            color: #FF4B4B;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .sub-title {
+            font-size: 20px;
+            color: #ffffff;
+            text-align: center;
+            margin-bottom: 30px;
+            background: linear-gradient(90deg, #FF4B4B, #4B8BFF);
+            padding: 10px;
+            border-radius: 10px;
+        }
+        .feature-card {
+            background-color: #262730;
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 5px solid #FF4B4B;
+            margin-bottom: 15px;
+            transition: transform 0.3s;
+        }
+        .feature-card:hover {
+            transform: scale(1.02);
+            border-left: 5px solid #4B8BFF;
+        }
+        .feature-icon {
+            font-size: 25px;
+            margin-right: 10px;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+    # Header Section
+    st.markdown('<p class="main-title">వాయి వేగ Multi-Tool 🚀</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-title">మీ బిజినెస్ పనులను సులభతరం చేసే స్మార్ట్ AI టూల్స్</p>', unsafe_allow_html=True)
+
+    # Features Grid using Columns
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("""
+            <div class="feature-card">
+                <span class="feature-icon">📦</span>
+                <b style="color:#FF4B4B;">Barcode Generator</b><br>
+                కంపెనీ పేరుతో ప్రొఫెషనల్ 3-ఇంచ్ లేబుల్స్ నిమిషాల్లో తయారు చేయండి.
+            </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("""
+            <div class="feature-card">
+                <span class="feature-icon">📊</span>
+                <b style="color:#4B8BFF;">PDF to Excel</b><br>
+                ఢిల్లీవరీ PDFల నుండి డేటాను ఆటోమేటిక్‌గా ఎక్సెల్ షీట్‌లోకి మార్చండి.
+            </div>
+        """, unsafe_allow_html=True)
+
+    with col2:
+        st.markdown("""
+            <div class="feature-card">
+                <span class="feature-icon">📄</span>
+                <b style="color:#00FFCC;">Smart PDF Editor</b><br>
+                పాత లేబుల్స్ లో అమౌంట్ మరియు వెయిట్ వివరాలను సులభంగా ఎడిట్ చేయండి.
+            </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("""
+            <div class="feature-card">
+                <span class="feature-icon">🖼️</span>
+                <b style="color:#FFCC00;">AI Image Upscaler (4K)</b><br>
+                మీ తక్కువ క్వాలిటీ ఫోటోలను AI ద్వారా హై-క్వాలిటీ 4K ఫోటోలుగా మార్చండి.
+            </div>
+        """, unsafe_allow_html=True)
+
+    st.write("---")
+    st.success("👈 ఎడమవైపు ఉన్న మెనూ నుండి మీకు కావాల్సిన టూల్‌ను ఎంచుకోండి!")
 
 # --- 📦 1. BARCODE GENERATOR ---
 elif choice == "Barcode Generator":
@@ -190,3 +262,4 @@ elif choice == "Image Upscaler (4K)":
                         st.info("ఫైల్ మీ 'Downloads' ఫోల్డర్ లో సేవ్ అయింది.")
                 except Exception as e: st.error(f"Error: {e}")
             else: st.error(f"Model file ({model_path}) దొరకలేదు! GitHub లో అప్‌లోడ్ చేయండి.")
+
