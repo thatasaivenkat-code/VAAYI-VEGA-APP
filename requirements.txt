@@ -6,3 +6,5 @@ python-barcode
 reportlab
 Pillow
 xlsxwriter
+opencv-contrib-python-headless
+numpy
