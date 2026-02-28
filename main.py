@@ -16,6 +16,8 @@ import cv2
 import numpy as np
 import base64
 import time
+from PIL import Image
+import easyocr
 
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="వాయి వేగ Multi-Tool", layout="wide")
@@ -23,91 +25,30 @@ st.set_page_config(page_title="వాయి వేగ Multi-Tool", layout="wide"
 # --- SIDEBAR NAVIGATION ---
 st.sidebar.title("వాయి వేగ Navigation")
 choice = st.sidebar.radio("ఏం చేయాలనుకుంటున్నారు?", 
-                         ["Home", "Barcode Generator", "PDF to Excel Converter", "Smart PDF Label Editor", "Image Upscaler (4K)"])
+                         ["Home", "Barcode Generator", "PDF to Excel Converter", "Smart PDF Label Editor", "Image Upscaler (4K)", "Image to Text (OCR)"])
 
 # --- 🏠 0. HOME PAGE (COLORFUL DESIGN) ---
 if choice == "Home":
-    # Custom CSS for styling
     st.markdown("""
         <style>
-        .main-title {
-            font-size: 50px;
-            color: #FF4B4B;
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 10px;
-        }
-        .sub-title {
-            font-size: 20px;
-            color: #ffffff;
-            text-align: center;
-            margin-bottom: 30px;
-            background: linear-gradient(90deg, #FF4B4B, #4B8BFF);
-            padding: 10px;
-            border-radius: 10px;
-        }
-        .feature-card {
-            background-color: #262730;
-            padding: 20px;
-            border-radius: 15px;
-            border-left: 5px solid #FF4B4B;
-            margin-bottom: 15px;
-            transition: transform 0.3s;
-        }
-        .feature-card:hover {
-            transform: scale(1.02);
-            border-left: 5px solid #4B8BFF;
-        }
-        .feature-icon {
-            font-size: 25px;
-            margin-right: 10px;
-        }
+        .main-title { font-size: 50px; color: #FF4B4B; font-weight: bold; text-align: center; margin-bottom: 10px; }
+        .sub-title { font-size: 20px; color: #ffffff; text-align: center; margin-bottom: 30px; background: linear-gradient(90deg, #FF4B4B, #4B8BFF); padding: 10px; border-radius: 10px; }
+        .feature-card { background-color: #262730; padding: 20px; border-radius: 15px; border-left: 5px solid #FF4B4B; margin-bottom: 15px; transition: transform 0.3s; }
+        .feature-card:hover { transform: scale(1.02); border-left: 5px solid #4B8BFF; }
+        .feature-icon { font-size: 25px; margin-right: 10px; }
         </style>
     """, unsafe_allow_html=True)
 
-    # Header Section
     st.markdown('<p class="main-title">వాయి వేగ Multi-Tool 🚀</p>', unsafe_allow_html=True)
     st.markdown('<p class="sub-title">మీ బిజినెస్ పనులను సులభతరం చేసే స్మార్ట్ AI టూల్స్</p>', unsafe_allow_html=True)
 
-    # Features Grid using Columns
     col1, col2 = st.columns(2)
-
     with col1:
-        st.markdown("""
-            <div class="feature-card">
-                <span class="feature-icon">📦</span>
-                <b style="color:#FF4B4B;">Barcode Generator</b><br>
-                కంపెనీ పేరుతో ప్రొఫెషనల్ 3-ఇంచ్ లేబుల్స్ నిమిషాల్లో తయారు చేయండి.
-            </div>
-        """, unsafe_allow_html=True)
-        
-        st.markdown("""
-            <div class="feature-card">
-                <span class="feature-icon">📊</span>
-                <b style="color:#4B8BFF;">PDF to Excel</b><br>
-                ఢిల్లీవరీ PDFల నుండి డేటాను ఆటోమేటిక్‌గా ఎక్సెల్ షీట్‌లోకి మార్చండి.
-            </div>
-        """, unsafe_allow_html=True)
-
+        st.markdown('<div class="feature-card"><span class="feature-icon">📦</span><b style="color:#FF4B4B;">Barcode Generator</b><br>ప్రొఫెషనల్ 3-ఇంచ్ లేబుల్స్ తయారు చేయండి.</div>', unsafe_allow_html=True)
+        st.markdown('<div class="feature-card"><span class="feature-icon">📊</span><b style="color:#4B8BFF;">PDF to Excel</b><br>ఢిల్లీవరీ PDFల నుండి డేటాను ఎక్సెల్ లోకి మార్చండి.</div>', unsafe_allow_html=True)
     with col2:
-        st.markdown("""
-            <div class="feature-card">
-                <span class="feature-icon">📄</span>
-                <b style="color:#00FFCC;">Smart PDF Editor</b><br>
-                పాత లేబుల్స్ లో అమౌంట్ మరియు వెయిట్ వివరాలను సులభంగా ఎడిట్ చేయండి.
-            </div>
-        """, unsafe_allow_html=True)
-        
-        st.markdown("""
-            <div class="feature-card">
-                <span class="feature-icon">🖼️</span>
-                <b style="color:#FFCC00;">AI Image Upscaler (4K)</b><br>
-                మీ తక్కువ క్వాలిటీ ఫోటోలను AI ద్వారా హై-క్వాలిటీ 4K ఫోటోలుగా మార్చండి.
-            </div>
-        """, unsafe_allow_html=True)
-
-    st.write("---")
-    st.success("👈 ఎడమవైపు ఉన్న మెనూ నుండి మీకు కావాల్సిన టూల్‌ను ఎంచుకోండి!")
+        st.markdown('<div class="feature-card"><span class="feature-icon">📄</span><b style="color:#00FFCC;">Smart PDF Editor</b><br>లేబుల్స్ లో అమౌంట్ మరియు వెయిట్ ఎడిట్ చేయండి.</div>', unsafe_allow_html=True)
+        st.markdown('<div class="feature-card"><span class="feature-icon">📝</span><b style="color:#FF66B2;">Image to Text</b><br>ఫోటోలలోని అక్షరాలను (English/Telugu) టెక్స్ట్ గా మార్చండి.</div>', unsafe_allow_html=True)
 
 # --- 📦 1. BARCODE GENERATOR ---
 elif choice == "Barcode Generator":
@@ -150,7 +91,7 @@ elif choice == "Barcode Generator":
 elif choice == "PDF to Excel Converter":
     st.title("📊 వాయి వేగ PDF to Excel")
     col_b, col_h = st.columns(2)
-    with col_b: client_name = st.text_input("క్లయింట్ నేమ్ / ఐడి ఎంటర్ చేయండి (Column B):")
+    with col_b: client_name = st.text_input("క్ลయింట్ నేమ్ / ఐడి ఎంటర్ చేయండి (Column B):")
     with col_h: weight_val = st.text_input("వెయిట్ (Weight) ఎంటర్ చేయండి (Column H):")
     pdf_files = st.file_uploader("PDF ఫైల్స్ అప్‌లోడ్ చేయండి", type=['pdf'], accept_multiple_files=True)
     if pdf_files:
@@ -184,122 +125,94 @@ elif choice == "PDF to Excel Converter":
             output = BytesIO()
             with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
                 df.to_excel(writer, index=False, sheet_name='Data')
-                workbook = writer.book
-                worksheet = writer.sheets['Data']
-                cell_format = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'text_wrap': False})
-                for i, col in enumerate(df.columns):
-                    worksheet.set_column(i, i, 20, cell_format)
             st.download_button("Download Excel File", data=output.getvalue(), file_name="Vaayi_Vega_Data.xlsx")
 
-# --- 📄 3. SMART PDF LABEL EDITOR (FINAL ADJUSTED VERSION) ---
+# --- 📄 3. SMART PDF LABEL EDITOR ---
 elif choice == "Smart PDF Label Editor":
     st.title("📄 Smart PDF Label Editor")
-    
     company_type = st.radio("ఏ కంపెనీ లేబుల్?", ["DTDC", "Delhivery"], horizontal=True)
-    
     page_option = st.selectbox("ఏ పేజీలను ఎడిట్ చేయాలి?", ["All Pages", "Custom Page Number"])
     custom_pg = 1
     if page_option == "Custom Page Number":
         custom_pg = st.number_input("ఏ పేజీ నంబర్ ఎడిట్ చేయాలి?", min_value=1, step=1)
-
     up_files = st.file_uploader(f"{company_type} PDF ఫైల్స్", type=["pdf"], accept_multiple_files=True)
-    
     if up_files:
         for u_file in up_files:
             st.markdown("---")
-            st.subheader(f"Editing: {u_file.name}")
-            
             c1, c2 = st.columns(2)
             with c1: n_amt = st.text_input(f"అమౌంట్ Rs.", key=f"a_{u_file.name}")
             with c2: n_wt = st.text_input(f"వెయిట్ KG", key=f"w_{u_file.name}")
-            
             if st.button(f"Process {u_file.name}"):
                 if n_amt and n_wt:
                     doc = fitz.open(stream=u_file.read(), filetype="pdf")
-                    num_pages = len(doc)
-                    
-                    pages_to_edit = range(num_pages) if page_option == "All Pages" else [custom_pg - 1]
-
+                    pages_to_edit = range(len(doc)) if page_option == "All Pages" else [custom_pg - 1]
                     for p_idx in pages_to_edit:
-                        if 0 <= p_idx < num_pages:
+                        if 0 <= p_idx < len(doc):
                             page = doc[p_idx]
-                            
                             if company_type == "DTDC":
-                                # --- DTDC: అమౌంట్ ఎడిట్ ---
                                 page.add_redact_annot(fitz.Rect(100, 480, 260, 515), fill=(1,1,1))
                                 page.apply_redactions()
                                 page.insert_text((75, 505), f"Rs. {n_amt}", fontsize=20, fontname="hebo")
-                                
-                                # --- DTDC: వెయిట్ 1mm కిందకు అడ్జస్ట్మెంట్ (Position -5.2) ---
                                 w_hit = page.search_for("Weight")
                                 if w_hit:
                                     page.add_redact_annot(fitz.Rect(w_hit[0].x1 + 2, w_hit[0].y0 - 2, 450, w_hit[0].y1 + 2), fill=(1,1,1))
                                     page.apply_redactions()
-                                    # ఇక్కడ -8 ఉన్న చోట -5.2 చేశాను (ఇది సరిగ్గా 1mm కిందకు వస్తుంది)
                                     page.insert_text((w_hit[0].x1 + 5, w_hit[0].y1 - 5.2), f": {n_wt} KG", fontsize=14, fontname="hebo")
-                            
                             else:
-                                # --- Delhivery: అమౌంట్ కింద వెయిట్ వచ్చేలా ---
                                 p_hit = page.search_for("Product")
                                 if p_hit:
-                                    start_x = p_hit[0].x0 + 2
-                                    amt_y = p_hit[0].y1 + 18 
-                                    wt_y = amt_y + 16 
-                                    
-                                    page.add_redact_annot(fitz.Rect(start_x, amt_y - 12, start_x + 200, wt_y + 5), fill=(1,1,1))
+                                    sx, ay = p_hit[0].x0+2, p_hit[0].y1+18
+                                    wy = ay+16
+                                    page.add_redact_annot(fitz.Rect(sx, ay-12, sx+200, wy+5), fill=(1,1,1))
                                     page.apply_redactions()
-                                    
-                                    # Rs. అమౌంట్ మరియు వెయిట్ (కిందకు)
-                                    page.insert_text((start_x, amt_y), f"Rs. {n_amt}", fontsize=12, fontname="hebo", color=(0,0,0))
-                                    page.insert_text((start_x, wt_y), f"Weight: {n_wt} KG", fontsize=12, fontname="hebo", color=(0,0,0))
-                        else:
-                            st.warning(f"పేజీ {p_idx+1} ఈ ఫైల్ లో లేదు.")
-
+                                    page.insert_text((sx, ay), f"Rs. {n_amt}", fontsize=12, color=(0,0,0))
+                                    page.insert_text((sx, wy), f"Weight: {n_wt} KG", fontsize=12, color=(0,0,0))
                     res = BytesIO()
                     doc.save(res)
-                    st.success(f"ప్రాసెస్ పూర్తయింది!")
+                    st.success("ప్రాసెస్ పూర్తయింది!")
                     st.download_button(f"Download {u_file.name}", data=res.getvalue(), file_name=f"Fixed_{u_file.name}")
-# --- 🖼️ 4. IMAGE UPSCALER (MEMORY OPTIMIZED) ---
+
+# --- 🖼️ 4. IMAGE UPSCALER (4K QUALITY) ---
 elif choice == "Image Upscaler (4K)":
     st.title("🖼️ AI Image Upscaler (4K Quality)")
-    
     model_path = "EDSR_x4.pb"
     up_img = st.file_uploader("ఒక ఫోటోను అప్‌లోడ్ చేయండి", type=['png', 'jpg', 'jpeg'])
-    
     if up_img:
-        st.image(up_img, caption="Original Image", width=300)
-        if st.button("Convert to 4K"):
-            with st.spinner("AI ప్రాసెస్ చేస్తోంది... (పెద్ద ఫోటోలకు సమయం పట్టవచ్చు)"):
-                # 1. ఇమేజ్ ని లోడ్ చేయడం
-                file_bytes = np.asarray(bytearray(up_img.read()), dtype=np.uint8)
-                img = cv2.imdecode(file_bytes, 1)
-
-                # 2. ఇమేజ్ మరీ పెద్దగా ఉంటే రీసైజ్ చేయడం (Safety Step)
-                h, w = img.shape[:2]
-                if w > 1200: # ఫోటో వెడల్పు 1200px దాటితే
-                    new_w = 800
-                    new_h = int(h * (new_w / w))
-                    img = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_AREA)
-
+        st.image(up_img, caption="Original Image", use_container_width=True)
+        if st.button("Convert to 4K & Auto Download"):
+            if os.path.exists(model_path):
                 try:
+                    file_bytes = np.asarray(bytearray(up_img.read()), dtype=np.uint8)
+                    img = cv2.imdecode(file_bytes, 1)
                     sr = cv2.dnn_superres.DnnSuperResImpl_create()
-                    sr.readModel(model_path)
-                    sr.setModel("edsr", 4) 
-                    
-                    result = sr.upsample(img)
-                    
-                    # రిజల్ట్ చూపించడం
-                    result_rgb = cv2.cvtColor(result, cv2.COLOR_BGR2RGB)
-                    st.success("🎉 4K కన్వర్షన్ పూర్తయింది!")
-                    st.image(result_rgb, caption="Upscaled Image", use_container_width=True)
-                    
-                    # డౌన్‌లోడ్ బటన్
-                    _, buffer = cv2.imencode('.png', result)
-                    st.download_button("Download 4K Photo", data=buffer.tobytes(), file_name="VayiVega_4K.png")
-                    
-                    # మెమరీ క్లియర్ చేయడం
-                    del img, result, result_rgb
-                except Exception as e:
-                    st.error("సర్వర్ మెమరీ సరిపోవట్లేదు. దయచేసి చిన్న ఫోటోతో ట్రై చేయండి.")
+                    sr.readModel(model_path); sr.setModel("edsr", 4)
+                    with st.spinner("AI పని చేస్తోంది..."):
+                        result = sr.upsample(img)
+                        result_rgb = cv2.cvtColor(result, cv2.COLOR_BGR2RGB)
+                        st.image(result_rgb, caption="Upscaled 4K Image", use_container_width=True)
+                        _, buffer = cv2.imencode('.png', result)
+                        b64 = base64.b64encode(buffer).decode()
+                        st.markdown(f'<a id="dl" href="data:image/png;base64,{b64}" download="4K_Result.png"></a><script>document.getElementById("dl").click();</script>', unsafe_allow_html=True)
+                except Exception as e: st.error(f"Error: {e}")
+            else: st.error("Model file not found!")
 
-
+# --- 📝 5. IMAGE TO TEXT (OCR) ---
+elif choice == "Image to Text (OCR)":
+    st.title("📝 Image to Text Converter")
+    st.write("ఫోటోను అప్‌లోడ్ చేయండి, AI అందులోని టెక్స్ట్‌ని (English/Telugu) చదివి మీకు ఇస్తుంది.")
+    up_img_ocr = st.file_uploader("ఇమేజ్ సెలెక్ట్ చేయండి", type=['png', 'jpg', 'jpeg'], key="ocr_uploader")
+    if up_img_ocr:
+        image = Image.open(up_img_ocr)
+        st.image(image, caption="Uploaded Image", width=400)
+        if st.button("Extract Text (టెక్స్ట్ తీయి)"):
+            with st.spinner("AI చదువుతోంది, ఒక్క నిమిషం..."):
+                reader = easyocr.Reader(['en', 'te'])
+                img_array = np.array(image)
+                result = reader.readtext(img_array, detail=0)
+                if result:
+                    full_text = "\n".join(result)
+                    st.success("టెక్స్ట్ లభించింది!")
+                    st.text_area("బయటకు తీసిన టెక్స్ట్:", full_text, height=300)
+                    st.download_button("Download as TXT", full_text, file_name="extracted_text.txt")
+                else:
+                    st.warning("ఈ ఫోటోలో టెక్స్ట్ ఏమీ దొరకలేదు.")
