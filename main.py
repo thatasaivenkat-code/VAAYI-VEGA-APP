@@ -226,3 +226,59 @@ elif choice == "Image to Text (OCR)":
                     st.download_button("Download as TXT", full_text, file_name="extracted_text.txt")
                 else:
                     st.warning("టెక్స్ట్ ఏమీ దొరకలేదు.")
+
+# --- ⚖️ 6. VOLUMETRIC WEIGHT CALCULATOR (KG & GRAMS) ---
+elif choice == "Volumetric Calculator":
+    st.title("⚖️ Volumetric Weight Calculator")
+    st.info("Box L, W, H dimensions ivvandi, result KG mariyu Grams lo chudandi.")
+
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.subheader("📏 Dimensions (cm)")
+        length = st.number_input("Length (Podaavu) - cm", min_value=0.0, step=0.1, key="v_l")
+        width = st.number_input("Width (Vedalpu) - cm", min_value=0.0, step=0.1, key="v_w")
+        height = st.number_input("Height (Ettu) - cm", min_value=0.0, step=0.1, key="v_h")
+        
+        divisor = st.selectbox("Divisor (Courier Standard):", [5000, 4500, 6000], index=0)
+        st.caption("Common ga DTDC/Delhivery ki 5000 vadatharu.")
+
+    with col2:
+        st.subheader("📊 Result (Weight)")
+        if length > 0 and width > 0 and height > 0:
+            # Calculation in KG
+            vol_kg = (length * width * height) / divisor
+            # Calculation in Grams
+            vol_grams = vol_kg * 1000
+            
+            # Display Box
+            st.markdown(f"""
+                <div style="background-color:#1e1e1e; padding:20px; border-radius:15px; border: 2px solid #FF4B4B; text-align:center;">
+                    <p style="color:#ffffff; font-size:18px; margin-bottom:5px;">Volumetric Weight is:</p>
+                    <h1 style="color:#FF4B4B; margin:0; font-size:45px;">{vol_kg:.3f} <span style="font-size:20px; color:#ffffff;">KG</span></h1>
+                    <hr style="border: 0.5px solid #444;">
+                    <h2 style="color:#00FFCC; margin:10px 0;">{vol_grams:,.0f} <span style="font-size:18px; color:#ffffff;">Grams</span></h2>
+                </div>
+            """, unsafe_allow_html=True)
+            
+            st.write("---")
+            actual_w = st.number_input("Actual Weight (Original Weight in KG):", min_value=0.0, step=0.01)
+            if actual_w > 0:
+                final_w = max(vol_kg, actual_w)
+                st.warning(f"👉 **Chargeable Weight: {final_w:.3f} KG** (Indulo edi ekkuva unte adi bill paduthundi)")
+        else:
+            st.warning("Podaavu, Vedalpu, Ettu (L, W, H) values ivvandi.")
+
+    # Bulk Excel logic ki kuda idi apply cheddam
+    st.markdown("### 📁 Bulk Check (Excel)")
+    up_vol_file = st.file_uploader("L, W, H columns unna Excel file upload cheyandi", type=['xlsx'], key="bulk_vol")
+    if up_vol_file:
+        df_v = pd.read_excel(up_vol_file)
+        if all(c in df_v.columns for c in ['Length', 'Width', 'Height']):
+            df_v['Vol_Weight_KG'] = (df_v['Length'] * df_v['Width'] * df_v['Height']) / divisor
+            df_v['Vol_Weight_Grams'] = df_v['Vol_Weight_KG'] * 1000
+            st.dataframe(df_v)
+            
+            output_v = BytesIO()
+            df_v.to_excel(output_v, index=False)
+            st.download_button("Download Updated Results", data=output_v.getvalue(), file_name="Volumetric_Report.xlsx")
