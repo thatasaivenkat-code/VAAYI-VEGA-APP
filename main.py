@@ -26,8 +26,7 @@ st.set_page_config(page_title="వాయి వేగ Multi-Tool", layout="wide"
 st.sidebar.title("వాయి వేగ Navigation")
 choice = st.sidebar.radio("ఏం చేయాలనుకుంటున్నారు?", 
                          ["Home", "Barcode Generator", "PDF to Excel Converter", 
-                          "Smart PDF Label Editor", "Image Upscaler (4K)", 
-                          "Image to Text (OCR)", "Volumetric Calculator"])
+                          "Smart PDF Label Editor","Image to Text (OCR)", "Volumetric Calculator"])
 
 # --- 🏠 0. HOME PAGE (COLORFUL DESIGN) ---
 if choice == "Home":
@@ -284,4 +283,5 @@ elif choice == "Volumetric Calculator":
             output_v = BytesIO()
             df_v.to_excel(output_v, index=False)
             st.download_button("Download Updated Results", data=output_v.getvalue(), file_name="Volumetric_Report.xlsx")
+
 
