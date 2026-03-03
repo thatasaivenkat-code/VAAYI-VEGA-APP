@@ -17,83 +17,473 @@ import numpy as np
 import base64
 from PIL import Image
 
-# --- SUPER CUSTOM CSS ---
+# --- NEON THEME CSS ---
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+
+/* Global Styles */
 html, body, [class*="css"]  {
-    font-family: 'Poppins', sans-serif !important;
+    font-family: 'Rajdhani', sans-serif !important;
 }
+
+/* Animated Neon Background */
 .stApp {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #0a0a0a;
+    position: relative;
+    overflow-x: hidden;
 }
+
+.stApp::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(ellipse at 20% 30%, rgba(255, 0, 255, 0.15) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 70%, rgba(0, 255, 255, 0.15) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 50%, rgba(0, 255, 157, 0.1) 0%, transparent 60%);
+    animation: neonPulse 8s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@keyframes neonPulse {
+    0%, 100% { opacity: 0.8; }
+    50% { opacity: 1; }
+}
+
+/* Main Title with Neon Glow */
 .main-title {
-    font-size: 4rem !important;
-    background: linear-gradient(45deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4);
+    font-size: 4.5rem !important;
+    font-family: 'Orbitron', sans-serif !important;
+    background: linear-gradient(45deg, #ff00ff, #00ffff, #00ff9d, #ff00ff);
+    background-size: 300% 300%;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    font-weight: 700 !important;
+    font-weight: 900 !important;
     text-align: center;
     margin-bottom: 20px;
+    animation: neonGradient 4s ease infinite, textGlow 2s ease-in-out infinite;
+    text-shadow: 
+        0 0 10px rgba(255, 0, 255, 0.8),
+        0 0 20px rgba(255, 0, 255, 0.6),
+        0 0 30px rgba(255, 0, 255, 0.4),
+        0 0 40px rgba(0, 255, 255, 0.3);
+    letter-spacing: 3px;
 }
+
+@keyframes neonGradient {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+@keyframes textGlow {
+    0%, 100% { 
+        filter: brightness(1) drop-shadow(0 0 20px rgba(255, 0, 255, 0.8)); 
+    }
+    50% { 
+        filter: brightness(1.2) drop-shadow(0 0 30px rgba(0, 255, 255, 0.9)); 
+    }
+}
+
+/* Subtitle with Neon Border */
 .subtitle {
-    font-size: 1.3rem !important;
-    color: #fff;
+    font-size: 1.4rem !important;
+    color: #00ffff;
     text-align: center;
-    background: rgba(255,255,255,0.1);
-    padding: 15px 30px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 18px 40px;
     border-radius: 50px;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.2);
-    margin-bottom: 40px;
+    backdrop-filter: blur(15px);
+    border: 2px solid #00ffff;
+    margin-bottom: 50px;
+    box-shadow: 
+        0 0 10px rgba(0, 255, 255, 0.6),
+        0 0 20px rgba(0, 255, 255, 0.4),
+        0 0 30px rgba(0, 255, 255, 0.2),
+        inset 0 0 10px rgba(0, 255, 255, 0.1);
+    animation: borderPulse 3s ease-in-out infinite;
+    font-weight: 500;
+    letter-spacing: 1px;
 }
+
+@keyframes borderPulse {
+    0%, 100% { 
+        border-color: #00ffff;
+        box-shadow: 
+            0 0 10px rgba(0, 255, 255, 0.6),
+            0 0 20px rgba(0, 255, 255, 0.4),
+            0 0 30px rgba(0, 255, 255, 0.2);
+    }
+    50% { 
+        border-color: #ff00ff;
+        box-shadow: 
+            0 0 15px rgba(255, 0, 255, 0.8),
+            0 0 25px rgba(255, 0, 255, 0.5),
+            0 0 35px rgba(255, 0, 255, 0.3);
+    }
+}
+
+/* Feature Cards with Neon Effects */
 .feature-card {
-    background: rgba(255,255,255,0.95);
+    background: rgba(10, 10, 10, 0.85);
     padding: 30px;
     border-radius: 20px;
     margin: 15px 0;
-    transition: all 0.3s ease;
-    border: 1px solid rgba(255,255,255,0.2);
-    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    transition: all 0.4s ease;
+    border: 2px solid rgba(0, 255, 255, 0.3);
+    box-shadow: 
+        0 0 15px rgba(0, 255, 255, 0.2),
+        inset 0 0 15px rgba(0, 255, 255, 0.05);
     cursor: pointer;
     height: 160px;
     display: flex;
     align-items: center;
+    position: relative;
+    overflow: hidden;
 }
+
+.feature-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent,
+        rgba(0, 255, 255, 0.1),
+        transparent
+    );
+    transform: rotate(45deg);
+    transition: all 0.6s ease;
+}
+
+.feature-card:hover::before {
+    left: 100%;
+}
+
 .feature-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 25px 50px rgba(0,0,0,0.2);
-    background: rgba(255,255,255,1);
+    transform: translateY(-10px) scale(1.02);
+    border-color: #00ffff;
+    box-shadow: 
+        0 0 25px rgba(0, 255, 255, 0.6),
+        0 0 40px rgba(0, 255, 255, 0.4),
+        0 0 60px rgba(0, 255, 255, 0.2),
+        inset 0 0 20px rgba(0, 255, 255, 0.1);
+    background: rgba(10, 10, 10, 0.95);
 }
+
 .feature-icon {
-    font-size: 3rem !important;
-    margin-right: 20px;
+    font-size: 3.5rem !important;
+    margin-right: 25px;
+    filter: drop-shadow(0 0 10px rgba(0, 255, 255, 0.8));
+    animation: iconFloat 3s ease-in-out infinite;
 }
+
+@keyframes iconFloat {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
 .card-title {
-    font-size: 1.4rem;
-    font-weight: 600;
-    color: #2c3e50;
-    margin-bottom: 8px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #00ffff;
+    margin-bottom: 10px;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.6);
+    font-family: 'Orbitron', sans-serif;
+    letter-spacing: 1px;
 }
+
 .card-desc {
-    color: #7f8c8d;
-    font-size: 0.95rem;
+    color: #00ff9d;
+    font-size: 1rem;
+    font-weight: 400;
+    text-shadow: 0 0 5px rgba(0, 255, 157, 0.4);
 }
+
+/* Tool Section with Neon Glow */
 .tool-section {
-    background: rgba(255,255,255,0.95);
-    padding: 35px;
+    background: rgba(10, 10, 10, 0.9);
+    padding: 40px;
     border-radius: 25px;
     margin: 20px 0;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    border: 2px solid rgba(255, 0, 255, 0.3);
+    box-shadow: 
+        0 0 20px rgba(255, 0, 255, 0.3),
+        0 0 40px rgba(255, 0, 255, 0.1),
+        inset 0 0 20px rgba(255, 0, 255, 0.05);
 }
+
+/* Section Title */
 .section-title {
-    font-size: 2.2rem !important;
-    background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+    font-size: 2.5rem !important;
+    font-family: 'Orbitron', sans-serif !important;
+    background: linear-gradient(90deg, #ff00ff, #00ffff, #00ff9d);
+    background-size: 200% 200%;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     text-align: center;
-    margin-bottom: 25px;
-    font-weight: 600;
+    margin-bottom: 30px;
+    font-weight: 700;
+    animation: neonGradient 3s ease infinite;
+    text-shadow: 
+        0 0 20px rgba(255, 0, 255, 0.6),
+        0 0 30px rgba(0, 255, 255, 0.4);
+    letter-spacing: 2px;
+}
+
+/* Sidebar Neon Styling */
+section[data-testid="stSidebar"] {
+    background: rgba(10, 10, 10, 0.95) !important;
+    border-right: 2px solid rgba(0, 255, 255, 0.3);
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
+}
+
+section[data-testid="stSidebar"] .stRadio > label {
+    color: #00ffff !important;
+    font-size: 1.1rem !important;
+    font-weight: 500 !important;
+}
+
+section[data-testid="stSidebar"] [role="radiogroup"] label {
+    color: #00ff9d !important;
+    padding: 12px 20px !important;
+    border-radius: 10px !important;
+    transition: all 0.3s ease !important;
+    border: 1px solid transparent !important;
+}
+
+section[data-testid="stSidebar"] [role="radiogroup"] label:hover {
+    background: rgba(0, 255, 255, 0.1) !important;
+    border-color: rgba(0, 255, 255, 0.5) !important;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.3) !important;
+}
+
+/* Buttons with Neon Effect */
+.stButton > button {
+    background: linear-gradient(135deg, #ff00ff, #00ffff) !important;
+    color: #000 !important;
+    font-weight: 700 !important;
+    font-size: 1.1rem !important;
+    padding: 12px 30px !important;
+    border-radius: 50px !important;
+    border: 2px solid rgba(0, 255, 255, 0.5) !important;
+    box-shadow: 
+        0 0 20px rgba(0, 255, 255, 0.5),
+        0 0 40px rgba(255, 0, 255, 0.3) !important;
+    transition: all 0.4s ease !important;
+    font-family: 'Orbitron', sans-serif !important;
+    letter-spacing: 1px !important;
+}
+
+.stButton > button:hover {
+    transform: scale(1.05) !important;
+    box-shadow: 
+        0 0 30px rgba(0, 255, 255, 0.8),
+        0 0 50px rgba(255, 0, 255, 0.5) !important;
+    background: linear-gradient(135deg, #00ffff, #ff00ff) !important;
+}
+
+/* Input Fields with Neon Border */
+.stTextInput > div > div > input,
+.stTextArea > div > div > textarea,
+.stNumberInput > div > div > input,
+.stSelectbox > div > div > select {
+    background: rgba(10, 10, 10, 0.8) !important;
+    color: #00ffff !important;
+    border: 2px solid rgba(0, 255, 255, 0.3) !important;
+    border-radius: 10px !important;
+    font-size: 1rem !important;
+    padding: 10px !important;
+    transition: all 0.3s ease !important;
+}
+
+.stTextInput > div > div > input:focus,
+.stTextArea > div > div > textarea:focus,
+.stNumberInput > div > div > input:focus,
+.stSelectbox > div > div > select:focus {
+    border-color: #00ffff !important;
+    box-shadow: 
+        0 0 15px rgba(0, 255, 255, 0.5),
+        inset 0 0 10px rgba(0, 255, 255, 0.1) !important;
+    outline: none !important;
+}
+
+/* Labels */
+.stTextInput > label,
+.stTextArea > label,
+.stNumberInput > label,
+.stSelectbox > label,
+.stFileUploader > label {
+    color: #00ff9d !important;
+    font-weight: 600 !important;
+    font-size: 1.1rem !important;
+    text-shadow: 0 0 10px rgba(0, 255, 157, 0.4);
+}
+
+/* Success/Error Messages with Neon */
+.stSuccess {
+    background: rgba(0, 255, 157, 0.1) !important;
+    border: 2px solid #00ff9d !important;
+    border-radius: 10px !important;
+    box-shadow: 0 0 20px rgba(0, 255, 157, 0.3) !important;
+    color: #00ff9d !important;
+}
+
+.stError {
+    background: rgba(255, 0, 100, 0.1) !important;
+    border: 2px solid #ff0064 !important;
+    border-radius: 10px !important;
+    box-shadow: 0 0 20px rgba(255, 0, 100, 0.3) !important;
+    color: #ff0064 !important;
+}
+
+.stWarning {
+    background: rgba(255, 200, 0, 0.1) !important;
+    border: 2px solid #ffc800 !important;
+    border-radius: 10px !important;
+    box-shadow: 0 0 20px rgba(255, 200, 0, 0.3) !important;
+    color: #ffc800 !important;
+}
+
+/* Dataframe Styling */
+.stDataFrame {
+    border: 2px solid rgba(0, 255, 255, 0.3) !important;
+    border-radius: 10px !important;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.2) !important;
+}
+
+/* Tabs Neon Effect */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 10px;
+}
+
+.stTabs [data-baseweb="tab"] {
+    background: rgba(10, 10, 10, 0.8) !important;
+    color: #00ffff !important;
+    border: 2px solid rgba(0, 255, 255, 0.3) !important;
+    border-radius: 10px !important;
+    padding: 10px 25px !important;
+    font-weight: 600 !important;
+    transition: all 0.3s ease !important;
+}
+
+.stTabs [data-baseweb="tab"]:hover {
+    border-color: #00ffff !important;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.5) !important;
+}
+
+.stTabs [aria-selected="true"] {
+    background: rgba(0, 255, 255, 0.2) !important;
+    border-color: #00ffff !important;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.6) !important;
+}
+
+/* Download Button Special */
+.stDownloadButton > button {
+    background: linear-gradient(135deg, #00ff9d, #00ffff) !important;
+    color: #000 !important;
+    font-weight: 700 !important;
+    border: 2px solid #00ffff !important;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5) !important;
+    font-family: 'Orbitron', sans-serif !important;
+}
+
+.stDownloadButton > button:hover {
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.8) !important;
+    transform: scale(1.05) !important;
+}
+
+/* Checkbox and Radio Neon */
+.stCheckbox > label,
+.stRadio > label {
+    color: #00ffff !important;
+    font-weight: 600 !important;
+}
+
+/* Divider Neon Line */
+hr {
+    border: none !important;
+    height: 2px !important;
+    background: linear-gradient(90deg, transparent, #00ffff, transparent) !important;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.5) !important;
+    margin: 30px 0 !important;
+}
+
+/* Spinner Animation */
+.stSpinner > div {
+    border-color: #00ffff transparent transparent transparent !important;
+}
+
+/* File Uploader */
+.stFileUploader {
+    border: 2px dashed rgba(0, 255, 255, 0.4) !important;
+    border-radius: 15px !important;
+    background: rgba(10, 10, 10, 0.6) !important;
+    transition: all 0.3s ease !important;
+}
+
+.stFileUploader:hover {
+    border-color: #00ffff !important;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3) !important;
+}
+
+/* Scrollbar Neon */
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(10, 10, 10, 0.8);
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #ff00ff, #00ffff);
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+}
+
+/* Info Box Neon */
+.stInfo {
+    background: rgba(0, 150, 255, 0.1) !important;
+    border: 2px solid rgba(0, 150, 255, 0.5) !important;
+    border-radius: 10px !important;
+    box-shadow: 0 0 15px rgba(0, 150, 255, 0.3) !important;
+    color: #0096ff !important;
+}
+
+/* Special Gradient Card */
+.feature-card[style*="linear-gradient"] {
+    background: linear-gradient(145deg, #ff00ff, #00ffff) !important;
+    border: 2px solid #00ffff !important;
+    box-shadow: 
+        0 0 30px rgba(255, 0, 255, 0.6),
+        0 0 50px rgba(0, 255, 255, 0.4) !important;
+    animation: specialCardPulse 2s ease-in-out infinite;
+}
+
+@keyframes specialCardPulse {
+    0%, 100% { 
+        box-shadow: 
+            0 0 30px rgba(255, 0, 255, 0.6),
+            0 0 50px rgba(0, 255, 255, 0.4);
+    }
+    50% { 
+        box-shadow: 
+            0 0 40px rgba(255, 0, 255, 0.8),
+            0 0 60px rgba(0, 255, 255, 0.6);
+    }
 }
 </style>
 """, unsafe_allow_html=True)
@@ -103,7 +493,7 @@ st.set_page_config(page_title="🚀 వాయి వేగ Pro", layout="wide")
 
 # --- SIDEBAR ---
 with st.sidebar:
-    st.markdown('<div style="text-align:center; padding:20px; background:rgba(255,255,255,0.1); border-radius:20px; margin-bottom:20px;"><h2 style="color:white; margin:0;">🚀 Vaayi Vega</h2></div>', unsafe_allow_html=True)
+    st.markdown('<div style="text-align:center; padding:20px; background:rgba(0, 255, 255, 0.1); border-radius:20px; margin-bottom:20px; border: 2px solid rgba(0, 255, 255, 0.3); box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);"><h2 style="color:#00ffff; margin:0; font-family: Orbitron, sans-serif; text-shadow: 0 0 20px rgba(0, 255, 255, 0.8);">🚀 Vaayi Vega</h2></div>', unsafe_allow_html=True)
     
     choice = st.radio("✨ Choose Tool:", 
                      ["🏠 Dashboard", "📦 Barcode Pro", "📊 PDF→Excel", 
@@ -173,7 +563,7 @@ if choice == "🏠 Dashboard":
         """, unsafe_allow_html=True)
         
         st.markdown("""
-        <div class="feature-card" style="background: linear-gradient(145deg, #FF6B6B, #4ECDC4); color:white;">
+        <div class="feature-card" style="background: linear-gradient(145deg, #ff00ff, #00ffff); color:white;">
             <span class="feature-icon">🎉</span>
             <div>
                 <div class="card-title" style="color:white;">All Tools Ready!</div>
@@ -514,8 +904,10 @@ elif choice == "⚖️ VoluCalc":
             vol_grams = vol_kg * 1000
             
             st.markdown(f"""
-            <div style="background: linear-gradient(145deg, #FF6B6B, #FF8E8E); 
-                        padding:25px; border-radius:20px; color:white; text-align:center;">
+            <div style="background: linear-gradient(145deg, #ff00ff, #ff0080); 
+                        padding:25px; border-radius:20px; color:white; text-align:center;
+                        border: 2px solid rgba(255, 0, 255, 0.5);
+                        box-shadow: 0 0 30px rgba(255, 0, 255, 0.5);">
                 <div style="font-size:1.1rem; opacity:0.9; margin-bottom:10px;">Volumetric Weight</div>
                 <div style="font-size:3rem; font-weight:700; margin:10px 0;">{vol_kg:.3f} KG</div>
                 <div style="font-size:1.5rem; opacity:0.8;">({vol_grams:,.0f} Grams)</div>
@@ -527,9 +919,11 @@ elif choice == "⚖️ VoluCalc":
             if actual_w > 0:
                 final_w = max(vol_kg, actual_w)
                 st.markdown(f"""
-                <div style="background: linear-gradient(145deg, #4ECDC4, #44A08D); 
-                            padding:20px; border-radius:20px; color:white; text-align:center; margin-top:15px;">
-                    <div style="font-size:1rem; opacity:0.9;">💰 Chargeable Weight</div>
+                <div style="background: linear-gradient(145deg, #00ffff, #00ff9d); 
+                            padding:20px; border-radius:20px; color:#000; text-align:center; margin-top:15px;
+                            border: 2px solid rgba(0, 255, 255, 0.5);
+                            box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);">
+                    <div style="font-size:1rem; opacity:0.8; font-weight:600;">💰 Chargeable Weight</div>
                     <div style="font-size:2.5rem; font-weight:700; margin-top:5px;">{final_w:.3f} KG</div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -566,7 +960,18 @@ elif choice == "⚖️ VoluCalc":
 # FOOTER
 # ===============================================
 st.markdown("""
-<div style="text-align:center; padding:30px; color:rgba(255,255,255,0.8); font-size:1rem; margin-top:40px;">
-    ✨ Made with ❤️ for Telugu Business Owners | Vaayi Vega © 2026
+<div style="text-align:center; padding:40px; margin-top:50px; 
+            border-top: 2px solid rgba(0, 255, 255, 0.3);
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;">
+    <div style="color:#00ffff; font-size:1.2rem; font-weight:600; margin-bottom:10px;
+                text-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+                font-family: 'Orbitron', sans-serif;">
+        ✨ Made with ❤️ for Telugu Business Owners
+    </div>
+    <div style="color:#00ff9d; font-size:1rem; margin-top:5px;
+                text-shadow: 0 0 10px rgba(0, 255, 157, 0.4);">
+        Vaayi Vega © 2026 | Powered by Neon Technology 🚀
+    </div>
 </div>
 """, unsafe_allow_html=True)
