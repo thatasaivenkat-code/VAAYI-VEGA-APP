@@ -15,269 +15,261 @@ import os
 import cv2
 import numpy as np
 from PIL import Image
-import pytesseract
 
-# 🔥 CLEAN NEON CSS
+# --- PAGE CONFIG ---
+st.set_page_config(page_title="🚀 వాయి వేగ Pro", layout="wide")
+
+# --- NAVIGATION STATE ---
+if 'page' not in st.session_state:
+    st.session_state.page = "🏠 Dashboard"
+
+# --- PERFECT NEON CSS (FROM CODE 1) ---
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
-.stApp {background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 100%);}
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Poppins:wght@300;400;600&display=swap');
+* {font-family: 'Poppins', sans-serif !important;}
+.stApp {background: #0a0a0a; min-height: 100vh;}
 .main-title {
-    font-family: 'Orbitron', monospace; font-size: 3rem;
+    font-family: 'Orbitron', monospace !important;
+    font-size: 3.5rem !important;
     background: linear-gradient(45deg, #ff00ff, #00ffff, #00ff9d);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    text-align: center; font-weight: 900;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-align: center;
+    margin: 20px 0;
+    font-weight: 900 !important;
+    text-shadow: 0 0 20px rgba(0,255,255,0.4);
+}
+.subtitle {
+    font-size: 1.2rem !important;
+    color: #00ffff;
+    text-align: center;
+    padding: 10px;
+    background: rgba(0,255,255,0.05);
+    border-radius: 50px;
+    border: 1px solid #00ffff;
+    margin-bottom: 30px;
+}
+.feature-card-btn {
+    background: rgba(20,20,40,0.9) !important;
+    border: 2px solid rgba(0,255,255,0.3) !important;
+    border-radius: 20px !important;
+    padding: 20px !important;
+    transition: all 0.3s ease !important;
+    text-align: center;
+    width: 100%;
+    margin-bottom: 15px;
+}
+.feature-card-btn:hover {
+    border-color: #00ffff !important;
+    box-shadow: 0 0 20px rgba(0,255,255,0.4) !important;
+    transform: translateY(-5px);
 }
 .tool-section {
-    background: rgba(20,20,40,0.95); padding: 30px;
-    border-radius: 25px; border: 2px solid rgba(255,0,255,0.4);
-    margin: 20px 0;
+    background: rgba(20,20,40,0.95) !important;
+    padding: 30px !important;
+    border-radius: 25px !important;
+    border: 2px solid rgba(255,0,255,0.4);
+    box-shadow: 0 0 30px rgba(255,0,255,0.2);
 }
+.section-title {
+    font-family: 'Orbitron', sans-serif !important;
+    color: #00ffff;
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 20px;
+}
+/* Style Buttons */
 .stButton > button {
     background: linear-gradient(135deg, #ff00ff, #00ffff) !important;
-    color: white !important; border-radius: 25px !important;
-    font-weight: 700 !important; padding: 0.5rem 2rem !important;
+    color: white !important;
+    border-radius: 25px !important;
+    font-family: 'Orbitron', sans-serif !important;
+    border: none !important;
+    width: 100%;
 }
 </style>
 """, unsafe_allow_html=True)
 
-st.set_page_config(page_title="🚀 వాయి వేగ Pro", layout="wide")
-
-# SIDEBAR
+# --- SIDEBAR ---
 with st.sidebar:
-    st.markdown("### 🚀 Vaayi Vega Tools")
-    choice = st.radio("Choose:", 
-                     ["🏠 Home", "📦 Barcode", "📊 PDF→Excel", 
-                      "✏️ PDF Edit", "📸 OCR", "⚖️ VoluCalc"],
-                     index=0)
+    st.markdown('<h2 style="color:#00ffff; font-family:Orbitron;">🚀 Vaayi Vega</h2>', unsafe_allow_html=True)
+    choice = st.sidebar.radio("Navigation", 
+                             ["🏠 Dashboard", "📦 Barcode Pro", "📊 PDF→Excel", 
+                              "✏️ PDF Editor", "📸 Image OCR", "⚖️ VoluCalc"],
+                             index=["🏠 Dashboard", "📦 Barcode Pro", "📊 PDF→Excel", "✏️ PDF Editor", "📸 Image OCR", "⚖️ VoluCalc"].index(st.session_state.page))
+    st.session_state.page = choice
 
-# 🏠 HOME
-if choice == "🏠 Home":
-    st.markdown('<h1 class="main-title">వాయి వేగ Multi-Tool 🚀</h1>', unsafe_allow_html=True)
-    st.info("👈 Select tool from sidebar")
+# ===============================================
+# 🏠 HOME DASHBOARD
+# ===============================================
+if st.session_state.page == "🏠 Dashboard":
+    st.markdown('<h1 class="main-title">వాయి వేగ PRO 🚀</h1>', unsafe_allow_html=True)
+    st.markdown('<p class="subtitle">5-in-1 AI Business Tools | Mass Neon Edition</p>', unsafe_allow_html=True)
 
-# 📦 BARCODE GENERATOR
-elif choice == "📦 Barcode":
-    st.markdown("## 📦 Barcode Generator (3-inch Label)")
-    
-    col1, col2 = st.columns([2,1])
+    col1, col2 = st.columns(2)
     with col1:
-        awb = st.text_input("Enter AWB Number:", placeholder="12345678")
+        if st.button("📦 Barcode Generator Pro\nCreate 3-inch Labels", key="btn_bar"): st.session_state.page = "📦 Barcode Pro"; st.rerun()
+        if st.button("📊 PDF to Excel Converter\nExtract Delivery/DTDC Data", key="btn_pdf"): st.session_state.page = "📊 PDF→Excel"; st.rerun()
+        if st.button("⚖️ Volumetric Calculator\nCompare Actual vs Vol Weight", key="btn_vol"): st.session_state.page = "⚖️ VoluCalc"; st.rerun()
     with col2:
-        format_choice = st.selectbox("Barcode Type:", ["Code128", "Code39"])
-    
-    if st.button("🎯 Generate Barcode") and awb:
-        try:
-            barcode_class = barcode.get_barcode_class(format_choice.lower())
-            barcode_instance = barcode_class(awb, writer=ImageWriter())
-            
-            buffer = BytesIO()
-            barcode_instance.write(buffer)
-            buffer.seek(0)
-            
-            pdf_buffer = BytesIO()
-            c = canvas.Canvas(pdf_buffer, pagesize=(3*inch, 1*inch))
-            
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as tmp:
-                tmp.write(buffer.getvalue())
-                tmp_path = tmp.name
-            
-            c.drawImage(tmp_path, 0.1*inch, 0.1*inch, width=2.8*inch, height=0.8*inch)
-            c.save()
-            os.unlink(tmp_path)
-            
-            pdf_buffer.seek(0)
-            st.success("✅ Barcode Created!")
-            st.download_button("📥 Download PDF", pdf_buffer, f"barcode_{awb}.pdf", "application/pdf")
-            
-        except Exception as e:
-            st.error(f"Error: {str(e)}")
+        if st.button("✏️ Smart PDF Editor\nEdit Amount & Weight on Labels", key="btn_edit"): st.session_state.page = "✏️ PDF Editor"; st.rerun()
+        if st.button("📸 Image to Text (OCR)\nEnglish + Telugu Extraction", key="btn_ocr"): st.session_state.page = "📸 Image OCR"; st.rerun()
+        st.markdown('<div style="background:rgba(0,255,255,0.1); padding:25px; border-radius:20px; border:1px dashed #00ffff; text-align:center; color:#00ffff;">🚀 All Systems Nominal. Ready to Process!</div>', unsafe_allow_html=True)
 
-# 📊 PDF TO EXCEL
-elif choice == "📊 PDF→Excel":
-    st.markdown("## 📊 PDF to Excel Converter")
-    st.markdown("**Supports:** Delhivery, DTDC, Standard Tables")
-    
-    uploaded_pdf = st.file_uploader("Upload PDF", type=['pdf'])
-    
-    if uploaded_pdf and st.button("🔄 Convert to Excel"):
-        try:
-            with pdfplumber.open(uploaded_pdf) as pdf:
-                all_data = []
-                for page in pdf.pages:
-                    tables = page.extract_tables()
-                    for table in tables:
-                        if table:
-                            all_data.extend(table)
-                
-                if all_data:
-                    df = pd.DataFrame(all_data[1:], columns=all_data[0])
-                    
-                    # Clean data
-                    df = df.dropna(how='all').reset_index(drop=True)
-                    
-                    st.success(f"✅ Extracted {len(df)} rows!")
-                    st.dataframe(df, use_container_width=True)
-                    
-                    # Download
-                    excel_buffer = BytesIO()
-                    df.to_excel(excel_buffer, index=False, engine='openpyxl')
-                    excel_buffer.seek(0)
-                    
-                    st.download_button(
-                        "📥 Download Excel",
-                        excel_buffer,
-                        f"converted_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx",
-                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                    )
-                else:
-                    st.warning("⚠️ No tables found in PDF")
-                    
-        except Exception as e:
-            st.error(f"Error: {str(e)}")
+# ===============================================
+# 📊 PDF TO EXCEL (WORKING FUNCTION)
+# ===============================================
+elif st.session_state.page == "📊 PDF→Excel":
+    st.markdown('<h2 class="section-title">📊 PDF to Excel Converter</h2>', unsafe_allow_html=True)
+    st.markdown('<div class="tool-section">', unsafe_allow_html=True)
+    c1, c2 = st.columns(2)
+    with c1:
+        use_del = st.checkbox("🚚 Delhivery", value=True)
+        del_id = st.text_input("Delhivery Client ID:", value="1234")
+        del_wt = st.text_input("Delhivery Weight:", value="0.5")
+    with c2:
+        use_dtdc = st.checkbox("📦 DTDC", value=True)
+        dtdc_id = st.text_input("DTDC Client ID:", value="5678")
+        dtdc_wt = st.text_input("DTDC Weight:", value="1.0")
 
-# ✏️ PDF EDITOR
-elif choice == "✏️ PDF Edit":
-    st.markdown("## ✏️ Smart PDF Text Editor")
-    
-    uploaded_pdf = st.file_uploader("Upload PDF to Edit", type=['pdf'])
-    
-    if uploaded_pdf:
-        pdf_bytes = uploaded_pdf.read()
-        doc = fitz.open(stream=pdf_bytes, filetype="pdf")
-        
-        st.info(f"📄 PDF has {len(doc)} pages")
-        
-        page_num = st.number_input("Select Page:", 1, len(doc), 1) - 1
-        page = doc[page_num]
-        
-        # Show current text
-        text_instances = page.get_text("dict")
-        st.markdown("### 📝 Current Text on Page:")
-        
-        page_text = page.get_text()
-        st.text_area("Page Content:", page_text, height=200)
-        
-        # Edit section
-        st.markdown("### ✏️ Edit Text:")
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            old_text = st.text_input("Find Text:", placeholder="Type text to replace")
-        with col2:
-            new_text = st.text_input("Replace With:", placeholder="New text")
-        
-        if st.button("🔄 Replace Text") and old_text:
-            try:
-                text_instances = page.search_for(old_text)
-                
-                if text_instances:
-                    for inst in text_instances:
-                        page.add_redact_annot(inst, fill=(1, 1, 1))
-                    page.apply_redactions()
-                    
-                    # Add new text
-                    first_inst = text_instances[0]
-                    page.insert_text(
-                        (first_inst.x0, first_inst.y0 + 10),
-                        new_text,
-                        fontsize=11,
-                        color=(0, 0, 0)
-                    )
-                    
-                    # Save
-                    output_buffer = BytesIO()
-                    doc.save(output_buffer)
-                    output_buffer.seek(0)
-                    
-                    st.success(f"✅ Replaced '{old_text}' with '{new_text}'")
-                    st.download_button(
-                        "📥 Download Edited PDF",
-                        output_buffer,
-                        f"edited_{uploaded_pdf.name}",
-                        "application/pdf"
-                    )
-                else:
-                    st.warning("⚠️ Text not found on this page")
-                    
-            except Exception as e:
-                st.error(f"Error: {str(e)}")
+    pdf_files = st.file_uploader("📄 Upload PDFs", type=['pdf'], accept_multiple_files=True)
+    if pdf_files and st.button("🔄 Start Extracting Data"):
+        all_data = []
+        for f in pdf_files:
+            with pdfplumber.open(f) as pdf:
+                for pg in pdf.pages:
+                    text = pg.extract_text()
+                    if not text: continue
+                    if use_del and "Delhivery" in text:
+                        awb = re.search(r"AWB#\s*(\d+)", text)
+                        pin = re.search(r"PIN\s*[:\-\s]*(\d{6})", text)
+                        all_data.append({"Client": del_id, "AWB": awb.group(1) if awb else "", "Pincode": pin.group(1) if pin else "", "Weight": del_wt})
+                    elif use_dtdc and "DTDC" in text:
+                        awb = re.search(r"([A-Z][0-9]{10})", text)
+                        pin = re.search(r"(\d{6})", text)
+                        all_data.append({"Client": dtdc_id, "AWB": awb.group(1) if awb else "", "Pincode": pin.group(1) if pin else "", "Weight": dtdc_wt})
+        if all_data:
+            df = pd.DataFrame(all_data)
+            st.dataframe(df, use_container_width=True)
+            output = BytesIO(); df.to_excel(output, index=False)
+            st.download_button("📥 Download Excel", output.getvalue(), "VayuVega_Data.xlsx")
+    st.markdown('</div>', unsafe_allow_html=True)
 
-# 📸 IMAGE OCR
-elif choice == "📸 OCR":
-    st.markdown("## 📸 Image to Text (OCR)")
-    st.markdown("**Languages:** Telugu + English")
+# ===============================================
+# ⚖️ VOLUMETRIC (WITH SAMPLE FILE & ACTUAL WT)
+# ===============================================
+elif st.session_state.page == "⚖️ VoluCalc":
+    st.markdown('<h2 class="section-title">⚖️ Volumetric Calculator</h2>', unsafe_allow_html=True)
+    st.markdown('<div class="tool-section">', unsafe_allow_html=True)
+    c1, c2, c3, c4 = st.columns(4)
+    l = c1.number_input("Length (cm)")
+    w = c2.number_input("Width (cm)")
+    h = c3.number_input("Height (cm)")
+    act_wt = st.number_input("Actual Weight (KG)")
+    div = st.selectbox("Divisor", [5000, 4500, 6000])
+    if l*w*h > 0:
+        vol_wt = (l*w*h)/div
+        st.info(f"Chargeable Weight: {max(vol_wt, act_wt):.3f} KG")
     
-    uploaded_image = st.file_uploader("Upload Image", type=['png', 'jpg', 'jpeg'])
+    st.divider()
+    st.subheader("📁 Bulk Volumetric Calculation")
+    # Sample file for user
+    sample_df = pd.DataFrame({'Length': [10, 20], 'Width': [10, 15], 'Height': [12, 10], 'Actual_Weight': [0.5, 1.5]})
+    sample_out = BytesIO(); sample_df.to_excel(sample_out, index=False)
+    st.download_button("📥 Download Sample Format", sample_out.getvalue(), "Sample_Format.xlsx")
     
-    lang_choice = st.radio("Select Language:", ["English", "Telugu", "Both"], horizontal=True)
-    
-    if uploaded_image and st.button("🔍 Extract Text"):
-        try:
-            image = Image.open(uploaded_image)
-            st.image(image, caption="Uploaded Image", width=400)
-            
-            # OCR language mapping
-            lang_map = {
-                "English": "eng",
-                "Telugu": "tel",
-                "Both": "eng+tel"
-            }
-            
-            with st.spinner("🔄 Processing..."):
-                extracted_text = pytesseract.image_to_string(
-                    image, 
-                    lang=lang_map[lang_choice]
-                )
-                
-                if extracted_text.strip():
-                    st.success("✅ Text Extracted!")
-                    st.text_area("📝 Extracted Text:", extracted_text, height=300)
-                    
-                    # Download option
-                    st.download_button(
-                        "📥 Download Text",
-                        extracted_text,
-                        f"ocr_output_{datetime.now().strftime('%Y%m%d_%H%M')}.txt",
-                        "text/plain"
-                    )
-                else:
-                    st.warning("⚠️ No text detected. Try:")
-                    st.info("• Better image quality\n• Clear text visibility\n• Different language setting")
-                    
-        except Exception as e:
-            st.error(f"Error: {str(e)}")
-            if "pytesseract" in str(e):
-                st.info("💡 Install: sudo apt-get install tesseract-ocr tesseract-ocr-tel")
+    bulk = st.file_uploader("Upload Excel", type=['xlsx'])
+    if bulk:
+        df_b = pd.read_excel(bulk)
+        df_b['Vol_Weight'] = (df_b['Length'] * df_b['Width'] * df_b['Height']) / div
+        df_b['Final_Weight'] = df_b[['Vol_Weight', 'Actual_Weight']].max(axis=1)
+        st.dataframe(df_b)
+        out_b = BytesIO(); df_b.to_excel(out_b, index=False)
+        st.download_button("Download Results", out_b.getvalue(), "Bulk_Results.xlsx")
+    st.markdown('</div>', unsafe_allow_html=True)
 
-# ⚖️ VOLUMETRIC CALCULATOR
-elif choice == "⚖️ VoluCalc":
-    st.markdown("## ⚖️ Volumetric Weight Calculator")
-    
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        length = st.number_input("Length (cm):", min_value=0.0, step=0.1)
-    with col2:
-        width = st.number_input("Width (cm):", min_value=0.0, step=0.1)
-    with col3:
-        height = st.number_input("Height (cm):", min_value=0.0, step=0.1)
-    
-    actual_weight = st.number_input("Actual Weight (kg):", min_value=0.0, step=0.1)
-    
-    if st.button("⚖️ Calculate Chargeable Weight"):
-        if length > 0 and width > 0 and height > 0:
-            volumetric_weight = (length * width * height) / 5000
-            chargeable = max(volumetric_weight, actual_weight)
-            
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.metric("📦 Volumetric Weight", f"{volumetric_weight:.2f} kg")
-            with col2:
-                st.metric("⚖️ Actual Weight", f"{actual_weight:.2f} kg")
-            with col3:
-                st.metric("💰 Chargeable Weight", f"{chargeable:.2f} kg", 
-                         delta=f"+{chargeable-actual_weight:.2f} kg" if chargeable > actual_weight else "Actual")
-            
-            st.success(f"✅ Billing Weight: **{chargeable:.2f} kg** ({chargeable*1000:.0f} grams)")
-        else:
-            st.warning("⚠️ Enter all dimensions!")
+# ===============================================
+# ✏️ PDF EDITOR (FIXED: AMT + WT)
+# ===============================================
+elif st.session_state.page == "✏️ PDF Editor":
+    st.markdown('<h2 class="section-title">✏️ Smart PDF Label Editor</h2>', unsafe_allow_html=True)
+    st.markdown('<div class="tool-section">', unsafe_allow_html=True)
+    ctype = st.radio("Select Courier:", ["DTDC", "Delhivery"], horizontal=True)
+    up_files = st.file_uploader("Upload Labels", type=['pdf'], accept_multiple_files=True)
+    if up_files:
+        for f in up_files:
+            st.write(f"Editing: {f.name}")
+            col_a, col_w = st.columns(2)
+            n_amt = col_a.text_input("New Amount:", key=f"a_{f.name}")
+            n_wt = col_w.text_input("New Weight:", key=f"w_{f.name}")
+            if st.button(f"Update & Download {f.name}"):
+                doc = fitz.open(stream=f.read(), filetype="pdf")
+                for page in doc:
+                    if ctype == "DTDC":
+                        page.add_redact_annot(fitz.Rect(100, 480, 260, 515), fill=(1,1,1))
+                        page.apply_redactions()
+                        page.insert_text((75, 505), f"Rs. {n_amt}", fontsize=20, color=(0,0,0))
+                        w_hit = page.search_for("Weight")
+                        if w_hit:
+                            page.add_redact_annot(fitz.Rect(w_hit[0].x1+5, w_hit[0].y0-2, 450, w_hit[0].y1+2), fill=(1,1,1))
+                            page.apply_redactions()
+                            page.insert_text((w_hit[0].x1+10, w_hit[0].y1-5), f": {n_wt} KG", fontsize=14, color=(0,0,0))
+                    else: # Delhivery
+                        p_hit = page.search_for("Product")
+                        if p_hit:
+                            sx, ay = p_hit[0].x0+2, p_hit[0].y1+18
+                            page.add_redact_annot(fitz.Rect(sx, ay-12, sx+200, ay+30), fill=(1,1,1))
+                            page.apply_redactions()
+                            page.insert_text((sx, ay), f"Rs. {n_amt}", fontsize=12, color=(0,0,0))
+                            page.insert_text((sx, ay+15), f"Weight: {n_wt} KG", fontsize=12, color=(0,0,0))
+                res = BytesIO(); doc.save(res)
+                st.download_button(f"📥 Download Fixed_{f.name}", res.getvalue(), f"Fixed_{f.name}")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# ===============================================
+# 📸 IMAGE OCR (WORKING)
+# ===============================================
+elif st.session_state.page == "📸 Image OCR":
+    st.markdown('<h2 class="section-title">📸 Image to Text (OCR)</h2>', unsafe_allow_html=True)
+    st.markdown('<div class="tool-section">', unsafe_allow_html=True)
+    img_f = st.file_uploader("Upload Image", type=['png','jpg','jpeg'])
+    if img_f:
+        img = Image.open(img_f)
+        st.image(img, width=400)
+        if st.button("🔍 Extract Text"):
+            with st.spinner("AI is reading..."):
+                try:
+                    import easyocr
+                    reader = easyocr.Reader(['en', 'te'])
+                    result = reader.readtext(np.array(img), detail=0)
+                    st.text_area("Extracted Text:", "\n".join(result), height=250)
+                except: st.error("OCR Error. Check easyocr installation.")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# ===============================================
+# 📦 BARCODE PRO (WORKING)
+# ===============================================
+elif st.session_state.page == "📦 Barcode Pro":
+    st.markdown('<h2 class="section-title">📦 Barcode Generator</h2>', unsafe_allow_html=True)
+    st.markdown('<div class="tool-section">', unsafe_allow_html=True)
+    nums = st.text_area("📝 Tracking Numbers (one per line):")
+    comp = st.text_input("🏢 Company Name", value="VAYI VEGA")
+    if st.button("Generate Label PDF"):
+        tracking_list = [n.strip() for n in nums.split('\n') if n.strip()]
+        pdf_buffer = BytesIO()
+        c = canvas.Canvas(pdf_buffer, pagesize=A4)
+        for num in tracking_list:
+            code_class = barcode.get_barcode_class('code128')
+            my_barcode = code_class(num, writer=ImageWriter())
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp:
+                img_path = my_barcode.save(tmp.name.replace(".png", ""))
+            c.setFont("Helvetica-Bold", 10); c.drawCentredString(150, 750, comp.upper())
+            c.drawImage(img_path, 50, 650, width=200, height=80)
+            c.showPage(); os.remove(img_path)
+        c.save()
+        st.download_button("📥 Download Labels", pdf_buffer.getvalue(), "Labels.pdf")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# --- FOOTER ---
+st.markdown('<p style="text-align:center; color:#00ffff; margin-top:50px; font-family:Orbitron;">Vaayi Vega © 2026 | Mass Neon Pro</p>', unsafe_allow_html=True)
