@@ -17,43 +17,6 @@ import numpy as np
 import base64
 from PIL import Image
 
-# ===============================================
-# E/D REFERENCE EXTRACTION FUNCTIONS (NEW!)
-# ===============================================
-def extract_full_ref(text):
-    """Extract reference from PDF text - E25+1, D19+1, etc."""
-    patterns = [
-        r'\b19-\d{10}\b', r'\d+-\d{10}\b', r'[A-Z][\d+]+\+\d+', 
-        r'[D][\d+]+\+\d+', r'\b\d+\+\d+\b', r'No\s*\d+',
-        r'Ref\.\s*No:\s*[A-Z]?\d+\+\d+', r'\b\d{2}-\d+\b',
-        r'\b[A-Z]\d{8,13}\b', r'\b\d{12,14}\b'
-    ]
-    for pattern in patterns:
-        match = re.search(pattern, text, re.IGNORECASE)
-        if match: return match.group(0)
-    return None
-
-def normalize_ref(ref_text): 
-    return re.sub(r'\s+', '', ref_text).lower().strip()
-
-def get_group_id(ref_text): 
-    """E25+1 → 25, D19+1 → 19 LOGIC ✅"""
-    ref_upper = ref_text.upper()
-    
-    # E LOGIC FIRST
-    e_match = re.search(r'E(\d+)', ref_upper)
-    if e_match: 
-        return e_match.group(1)[:2]
-    
-    # D LOGIC SECOND  
-    d_match = re.search(r'D(\d+)', ref_upper)
-    if d_match:
-        return d_match.group(1)[:2]
-    
-    # Generic fallback
-    match = re.search(r'[A-Z]?(\d+)', ref_text)
-    return match.group(1)[:2] if match else None
-
 # --- SUPER CUSTOM CSS ---
 st.markdown("""
 <style>
@@ -153,7 +116,7 @@ with st.sidebar:
 # ===============================================
 if choice == "🏠 Dashboard":
     st.markdown('<h1 class="main-title">వాయి వేగ Multi-Tool Pro 🚀</h1>', unsafe_allow_html=True)
-    st.markdown('<p class="subtitle">6-in-1 AI Business Tools | Telugu + English | E/D Reference Support</p>', unsafe_allow_html=True)
+    st.markdown('<p class="subtitle">5-in-1 AI Business Tools | Telugu + English Support</p>', unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
     
@@ -173,7 +136,7 @@ if choice == "🏠 Dashboard":
             <span class="feature-icon">📊</span>
             <div>
                 <div class="card-title">PDF to Excel Converter</div>
-                <div class="card-desc">Delhivery + DTDC + E25/D19 → Excel auto-extract.</div>
+                <div class="card-desc">Delhivery + DTDC PDFs → Excel auto-extract.</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -213,8 +176,8 @@ if choice == "🏠 Dashboard":
         <div class="feature-card" style="background: linear-gradient(145deg, #FF6B6B, #4ECDC4); color:white;">
             <span class="feature-icon">🎉</span>
             <div>
-                <div class="card-title" style="color:white;">E/D Logic Ready! 🚀</div>
-                <div class="card-desc" style="color:rgba(255,255,255,0.9);">Select from sidebar</div>
+                <div class="card-title" style="color:white;">All Tools Ready!</div>
+                <div class="card-desc" style="color:rgba(255,255,255,0.9);">Select from sidebar to start 🚀</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -279,7 +242,7 @@ elif choice == "📦 Barcode Pro":
     st.markdown('</div>', unsafe_allow_html=True)
 
 # ===============================================
-# 📊 PDF TO EXCEL CONVERTER (WITH E/D LOGIC!)
+# 📊 PDF TO EXCEL CONVERTER
 # ===============================================
 elif choice == "📊 PDF→Excel":
     st.markdown('<h2 class="section-title">📊 PDF to Excel Converter</h2>', unsafe_allow_html=True)
@@ -317,10 +280,6 @@ elif choice == "📊 PDF→Excel":
                         
                         final_date, awb, dest_name, dest_pin = "", "", "", ""
                         row_client, row_weight = "", ""
-                        
-                        # NEW! E/D REFERENCE EXTRACTION ✅
-                        ref = extract_full_ref(text)
-                        group_id = get_group_id(ref) if ref else None
 
                         # --- Delhivery Logic ---
                         if use_delhivery and ("AWB#" in text or "Delhivery" in text):
@@ -358,10 +317,9 @@ elif choice == "📊 PDF→Excel":
                                 f_match = re.search(r"FROM:\s*\n?([a-zA-Z]+)(\d+)", text)
                                 row_client = f_match.group(2) if f_match else ""
 
-                        if awb or dest_name or ref:
+                        if awb or dest_name:
                             all_extracted_data.append({
-                                "Reference No (A)": ref or "",
-                                "Group ID (A1)": group_id or "",
+                                "Reference No (A)": "",
                                 "Client/Phone (B)": row_client,
                                 "Date (C)": final_date,
                                 "AWB/Tracking (D)": awb,
@@ -477,4 +435,139 @@ elif choice == "📸 Image OCR":
             img_file = up_img
             
     with tab2:
-        cam_img = st.camera_input("
+        cam_img = st.camera_input("📷 Take Photo", key="camera_ocr")
+        if cam_img:
+            img_file = cam_img
+
+    if img_file:
+        image = Image.open(img_file)
+        st.image(image, caption="Selected Image", width=400)
+        
+        if st.button("🔍 Extract Text", use_container_width=True):
+            with st.spinner("🤖 AI is reading the image..."):
+                try:
+                    # Try to import easyocr
+                    try:
+                        import easyocr
+                        img_array = np.array(image.convert('L'))
+                        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+                        enhanced_img = clahe.apply(img_array)
+                        
+                        reader = easyocr.Reader(['en', 'te'])
+                        result = reader.readtext(enhanced_img, detail=0, paragraph=True)
+                        
+                        if result:
+                            full_text = "\n".join(result)
+                            st.success("✅ Text extracted successfully!")
+                            st.text_area("📝 Extracted Text:", full_text, height=250)
+                            st.download_button("📥 Download Text", full_text, 
+                                             file_name="extracted.txt", use_container_width=True)
+                        else:
+                            st.warning("⚠️ No text found in image. Try a clearer image.")
+                    except ImportError:
+                        st.error("❌ EasyOCR not installed. Install with: pip install easyocr")
+                        st.info("💡 Using basic OCR (English only)...")
+                        
+                        # Fallback to pytesseract if available
+                        try:
+                            import pytesseract
+                            text = pytesseract.image_to_string(image)
+                            if text.strip():
+                                st.success("✅ Text extracted!")
+                                st.text_area("📝 Extracted Text:", text, height=250)
+                                st.download_button("📥 Download Text", text, 
+                                                 file_name="extracted.txt", use_container_width=True)
+                            else:
+                                st.warning("⚠️ No text detected")
+                        except:
+                            st.error("❌ No OCR library available. Install easyocr or pytesseract.")
+                
+                except Exception as e:
+                    st.error(f"❌ Error: {str(e)}")
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# ===============================================
+# ⚖️ VOLUMETRIC CALCULATOR
+# ===============================================
+elif choice == "⚖️ VoluCalc":
+    st.markdown('<h2 class="section-title">⚖️ Volumetric Weight Calculator</h2>', unsafe_allow_html=True)
+    st.markdown('<div class="tool-section">', unsafe_allow_html=True)
+    
+    st.info("📦 Enter box dimensions to calculate volumetric weight")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.subheader("📐 Dimensions (cm)")
+        length = st.number_input("📏 Length", min_value=0.0, step=0.1, key="v_l")
+        width = st.number_input("📐 Width", min_value=0.0, step=0.1, key="v_w")
+        height = st.number_input("📏 Height", min_value=0.0, step=0.1, key="v_h")
+        
+        divisor = st.selectbox("🚚 Courier Divisor:", [5000, 4500, 6000], index=0)
+        st.caption("💡 Common: DTDC/Delhivery = 5000")
+
+    with col2:
+        st.subheader("📊 Results")
+        if length > 0 and width > 0 and height > 0:
+            vol_kg = (length * width * height) / divisor
+            vol_grams = vol_kg * 1000
+            
+            st.markdown(f"""
+            <div style="background: linear-gradient(145deg, #FF6B6B, #FF8E8E); 
+                        padding:25px; border-radius:20px; color:white; text-align:center;">
+                <div style="font-size:1.1rem; opacity:0.9; margin-bottom:10px;">Volumetric Weight</div>
+                <div style="font-size:3rem; font-weight:700; margin:10px 0;">{vol_kg:.3f} KG</div>
+                <div style="font-size:1.5rem; opacity:0.8;">({vol_grams:,.0f} Grams)</div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            st.write("")
+            actual_w = st.number_input("⚖️ Actual Weight (KG):", min_value=0.0, step=0.01)
+            if actual_w > 0:
+                final_w = max(vol_kg, actual_w)
+                st.markdown(f"""
+                <div style="background: linear-gradient(145deg, #4ECDC4, #44A08D); 
+                            padding:20px; border-radius:20px; color:white; text-align:center; margin-top:15px;">
+                    <div style="font-size:1rem; opacity:0.9;">💰 Chargeable Weight</div>
+                    <div style="font-size:2.5rem; font-weight:700; margin-top:5px;">{final_w:.3f} KG</div>
+                </div>
+                """, unsafe_allow_html=True)
+        else:
+            st.warning("⚠️ Enter L, W, H values")
+
+    st.markdown("---")
+    st.subheader("📁 Bulk Calculate (Excel)")
+    up_vol_file = st.file_uploader("📊 Upload Excel with L, W, H columns", type=['xlsx'], key="bulk_vol")
+    
+    if up_vol_file:
+        try:
+            df_v = pd.read_excel(up_vol_file)
+            if all(c in df_v.columns for c in ['Length', 'Width', 'Height']):
+                df_v['Vol_Weight_KG'] = (df_v['Length'] * df_v['Width'] * df_v['Height']) / divisor
+                df_v['Vol_Weight_Grams'] = df_v['Vol_Weight_KG'] * 1000
+                st.success(f"✅ Processed {len(df_v)} rows")
+                st.dataframe(df_v, use_container_width=True, height=300)
+                
+                output_v = BytesIO()
+                df_v.to_excel(output_v, index=False, engine='xlsxwriter')
+                st.download_button("📥 Download Results", 
+                                 data=output_v.getvalue(), 
+                                 file_name="Volumetric_Report.xlsx",
+                                 use_container_width=True)
+            else:
+                st.error("❌ Excel must have 'Length', 'Width', 'Height' columns!")
+        except Exception as e:
+            st.error(f"❌ Error: {str(e)}")
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# ===============================================
+# FOOTER
+# ===============================================
+st.markdown("""
+<div style="text-align:center; padding:30px; color:rgba(255,255,255,0.8); font-size:1rem; margin-top:40px;">
+    ✨ Made with ❤️ for Telugu Business Owners | Vaayi Vega © 2026
+</div>
+""", unsafe_allow_html=True)
+
