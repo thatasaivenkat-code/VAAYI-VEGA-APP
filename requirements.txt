@@ -11,3 +11,16 @@ numpy
 easyocr
 opencv-python-headless
 openpyxl
+streamlit
+PyMuPDF
+pandas
+pdfplumber
+python-barcode
+reportlab
+Pillow
+xlsxwriter
+opencv-contrib-python-headless
+numpy
+easyocr
+openpyxl
+PyPDF2
